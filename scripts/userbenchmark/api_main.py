@@ -9,4 +9,4 @@ from src.userbenchmark.mapper.UserBenchmarkAPI import UserBenchmarkAPI
 #print(data)
 
 data = UserBenchmarkAPI.get_data_of_part(UserBenchmarkPart.CPU)
-#print(data)
+print(data)

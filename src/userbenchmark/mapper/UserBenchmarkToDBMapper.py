@@ -52,3 +52,18 @@ class UserBenchmarkToDBMapper:
         except Exception as e:
             self.logger.error(f"Класс PcPartPickerDataBase. Метод add_all_parts_data. Ошибка - {str(e)}")
             return False
+        
+    def add_all_cpu(self):
+        pass
+
+    def add_all_gpu(self):
+        pass
+
+    def add_all_ssd(self):
+        pass
+
+    def add_all_hdd(self):
+        pass
+
+    def add_all_ram(self):
+        pass
