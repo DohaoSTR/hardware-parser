@@ -60,7 +60,7 @@ class UserBenchmarkCompareKeys:
     def get_compare_keys_from_json(part: UserBenchmarkPart):
         current_directory = os.getcwd()
         file_path = current_directory + "\\data\\userbenchmark\\compare_keys\\" + part.value + "_compare_keys.json"
-        with open(file_path, 'r') as json_file:
+        with open(file_path, 'r', encoding='utf-8') as json_file:
             compare_keys = json.load(json_file)
             
         return compare_keys

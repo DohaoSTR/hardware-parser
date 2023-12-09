@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+from typing import List
 
 from src.userbenchmark.UserBenchmarkGameKeys import UserBenchmarkGameKeys
 from src.userbenchmark.UserBenchmarkPart import UserBenchmarkPart
@@ -23,17 +24,21 @@ from .local_entities.HDD import HDD
 from .local_entities.SSD import SSD
 from .local_entities.RAM import RAM
 
+from .db_entities.PartEntity import PartEntity
+from .db_entities.Game import Game
+from .db_entities.Metric import Metric
+
 SUMMARY_DATA_RELATIVE_PATH = "\\data\\userbenchmark\\summary_data\\"
 PARAMETERS_MAPPING_RELATIVE_PATH = "\\data\\userbenchmark\\parameters_mapping\\"
 
 class UserBenchmarkAPI:
     #Type, PartNumber, Brand, Model, Rank, Benchmark, Samples, URL
-    def get_resource(part: UserBenchmarkPart):
+    def get_resource(part: UserBenchmarkPart) -> List[PartEntity]:
         current_directory = os.getcwd()
         csv_link = current_directory + "\\data\\userbenchmark\\resources\\" + part.value + "_UserBenchmarks.csv"
 
         data = []
-        with open(csv_link, 'r', newline='') as csvfile:
+        with open(csv_link, 'r', newline='', encoding='utf-8') as csvfile:
             reader = csv.reader(csvfile)
 
             next(reader)
@@ -63,20 +68,19 @@ class UserBenchmarkAPI:
                 if model == "":
                     model = None
 
-                data.append({ 
-                    "Type": type,
-                    "PartNumber": part_number,
-                    "Brand": brand,
-                    "Model": model,
-                    "Rank": int(rank),
-                    "Benchmark": float(benchmark),
-                    "Samples": int(samples),
-                    "URL": url
-                })
+                data.append(PartEntity( 
+                    type = type,
+                    part_number = part_number,
+                    brand = brand,
+                    model = model,
+                    rank = int(rank),
+                    benchmark = float(benchmark),
+                    samples = int(samples),
+                    url = url))
         
         return data
 
-    def get_resources():
+    def get_resources() -> List[PartEntity]:
         data = []
 
         for part in UserBenchmarkPart:
@@ -86,8 +90,9 @@ class UserBenchmarkAPI:
                 data.append(item)
 
         return data
-    
-    def get_game_keys():
+
+    #
+    def get_game_keys() -> dict:
         game_keys = UserBenchmarkGameKeys.get_game_keys_from_json()
 
         data = []
@@ -96,6 +101,17 @@ class UserBenchmarkAPI:
 
         return data
 
+    def get_game_keys_entities():
+        game_keys = UserBenchmarkGameKeys.get_game_keys_from_json()
+
+        data = []
+        for key, value in game_keys.items():
+            data.append(Game(key = key, name = value))
+
+        return data
+    #
+
+    #
     def get_metrics_of_part(part: UserBenchmarkPart):
         metrics_data = UserBenchmarkPartMetrics.get_metric_values_from_json(part)
 
@@ -118,6 +134,7 @@ class UserBenchmarkAPI:
                 data.append(item)
 
         return data
+    #
 
     #
     def __get_part_mapping(mapping_name: str):
@@ -329,6 +346,7 @@ class UserBenchmarkAPI:
                 data.append(item)
 
         return data
+    #
 
     #
     def get_fps_data():

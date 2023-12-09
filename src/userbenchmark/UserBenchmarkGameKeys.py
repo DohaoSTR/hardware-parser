@@ -231,7 +231,7 @@ class UserBenchmarkGameKeys:
         current_directory = os.getcwd()
         file_path = current_directory + "\\data\\userbenchmark\\game_keys.json"
 
-        with open(file_path, 'r') as json_file:
+        with open(file_path, 'r', encoding='utf-8') as json_file:
             game_keys = json.load(json_file)
             
         return game_keys

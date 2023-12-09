@@ -83,7 +83,7 @@ class UserBenchmarkPartKeys:
     def get_part_keys_from_json(part: UserBenchmarkPart):
         current_directory = os.getcwd()
         file_path = current_directory + "\\data\\userbenchmark\\part_keys\\" + part.value + "_keys.json"
-        with open(file_path, 'r') as json_file:
+        with open(file_path, 'r', encoding='utf-8') as json_file:
             part_keys = json.load(json_file)
             
         return part_keys
@@ -107,17 +107,3 @@ class UserBenchmarkPartKeys:
                 keys_data[i] = { "model": models[i], "key": keys[i] }
 
             UserBenchmarkPartKeys.save_part_keys_to_json(part, keys_data)
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    encoding='utf-8')
-    logger = logging.getLogger("fps_data_parser")
-    file_handler = logging.FileHandler("userbenchmark_parser\\logs\\part_keys_parser.log")
-    file_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-
-    parser = UserBenchmarkPartKeys(logger)
-    parser.get_all_part_keys()
