@@ -1,19 +1,19 @@
-from .PcPartPickerParameters import PcPartPickerParameters
-from .PcPartPickerPart import PcPartPickerPart
-from .PcPartPickerLinks import PcPartPickerLinks
-from .PcPartPickerImages import PcPartPickerImages
+from .Parameters import Parameters
+from .Part import Part
+from .Links import Links
+from .Images import Images
 
-from .db_entities.PcPartPickerPartEntity import PcPartPickerPartEntity
+from .db_entities.PartEntity import PartEntity
 
-from .local_entities.PcPartPickerCPUEntity import PcPartPickerCPUEntity
-from .local_entities.PcPartPickerGPUEntity import PcPartPickerGPUEntity
-from .local_entities.PcPartPickerCaseEntity import PcPartPickerCaseEntity
-from .local_entities.PcPartPickerCaseFanEntity import PcPartPickerCaseFanEntity
-from .local_entities.PcPartPickerCPUCoolerEntity import PcPartPickerCPUCoolerEntity
-from .local_entities.PcPartPickerInternalHardDriveEntity import PcPartPickerInternalHardDriveEntity
-from .local_entities.PcPartPickerMemoryEntity import PcPartPickerMemoryEntity
-from .local_entities.PcPartPickerMotherboardEntity import PcPartPickerMotherboardEntity
-from .local_entities.PcPartPickerPowerSupplyEntity import PcPartPickerPowerSupplyEntity
+from .local_entities.CPUEntity import CPUEntity
+from .local_entities.GPUEntity import GPUEntity
+from .local_entities.CaseEntity import CaseEntity
+from .local_entities.CaseFanEntity import CaseFanEntity
+from .local_entities.CPUCoolerEntity import CPUCoolerEntity
+from .local_entities.InternalHardDriveEntity import InternalHardDriveEntity
+from .local_entities.MemoryEntity import MemoryEntity
+from .local_entities.MotherboardEntity import MotherboardEntity
+from .local_entities.PowerSupplyEntity import PowerSupplyEntity
 
 import json
 import os
@@ -23,10 +23,10 @@ from typing import List
 PARAMETERS_MAPPING_RELATIVE_PATH = "\\data\\pcpartpicker\\parameters_mapping\\"
 UNIQUE_SPECIFICATION_NAMES_RELATIVE_PATH = "\\data\\pcpartpicker\\unique_specification_names\\"
 
-class PcPartPickerAPI:
+class API:
     # метод для получения данных о конкретной категории
-    def get_data_of_part(part: PcPartPickerPart) -> dict:
-        pages_data = PcPartPickerParameters.get_pages_data_from_json(part)
+    def get_data_of_part(part: Part) -> dict:
+        pages_data = Parameters.get_pages_data_from_json(part)
 
         return pages_data
     
@@ -35,8 +35,8 @@ class PcPartPickerAPI:
         data = {}
         
         index = 0
-        for part in PcPartPickerPart:
-            part_data = PcPartPickerAPI.get_data_of_part(part)
+        for part in Part:
+            part_data = API.get_data_of_part(part)
             for key, value in part_data.items():
                 data[index] = value
                 index = index + 1
@@ -52,11 +52,11 @@ class PcPartPickerAPI:
     #!
     #!
     # получить основные данные для таблицы pcpartpicker_part
-    def get_part_entities_of_part(part: PcPartPickerPart) -> List[PcPartPickerPartEntity]:
-        part_data = PcPartPickerAPI.get_data_of_part(part)
+    def get_part_entities_of_part(part: Part) -> List[PartEntity]:
+        part_data = API.get_data_of_part(part)
 
-        mapping = PcPartPickerAPI.__get_part_mapping("part_entity")
-        class_name = PcPartPickerAPI.__get_local_entity_class_name("part")
+        mapping = API.__get_part_mapping("part_entity")
+        class_name = API.__get_local_entity_class_name("part")
         my_instance = globals()[class_name]
 
         entities = []
@@ -84,11 +84,11 @@ class PcPartPickerAPI:
         return entities
     
     # получить основные данные для таблицы pcpartpicker_part для всех категорий
-    def get_part_entities_of_all_parts() -> List[PcPartPickerPartEntity]:
+    def get_part_entities_of_all_parts() -> List[PartEntity]:
         parts_entities = []
         
-        for part_enum_item in PcPartPickerPart:
-            part_entity = PcPartPickerAPI.get_part_entities_of_part(part_enum_item)
+        for part_enum_item in Part:
+            part_entity = API.get_part_entities_of_part(part_enum_item)
             parts_entities += part_entity
         
         return parts_entities
@@ -102,8 +102,8 @@ class PcPartPickerAPI:
     #!
     #!
     # получить данные о part# для для таблицы pcpartpicker_part_number 
-    def get_part_number_data(part: PcPartPickerPart):
-        part_data = PcPartPickerAPI.get_data_of_part(part)
+    def get_part_number_data(part: Part):
+        part_data = API.get_data_of_part(part)
 
         data = []
         for block_key, block_data in part_data.items():
@@ -131,8 +131,8 @@ class PcPartPickerAPI:
     # получить данные о part# для для таблицы pcpartpicker_part_number для всех категорий
     def get_part_number_data_of_all_parts():
         data = []
-        for part_enum_item in PcPartPickerPart:
-            part_number_data_of_part = PcPartPickerAPI.get_part_number_data(part_enum_item)
+        for part_enum_item in Part:
+            part_number_data_of_part = API.get_part_number_data(part_enum_item)
             data += part_number_data_of_part
         
         return data
@@ -146,8 +146,8 @@ class PcPartPickerAPI:
     #!
     #!
     # получить данные о user_ratings для для таблицы pcpartpicker_user_ratings
-    def get_user_rating_data(part: PcPartPickerPart):
-        part_data = PcPartPickerAPI.get_data_of_part(part)
+    def get_user_rating_data(part: Part):
+        part_data = API.get_data_of_part(part)
 
         data = []
         for block_key, block_data in part_data.items():
@@ -186,8 +186,8 @@ class PcPartPickerAPI:
     # получить данные о user_ratings для для таблицы pcpartpicker_user_ratings для всех категорий
     def get_user_rating_data_of_all_parts():
         data = []
-        for part_enum_item in PcPartPickerPart:
-            user_rating_data_of_part = PcPartPickerAPI.get_user_rating_data(part_enum_item)
+        for part_enum_item in Part:
+            user_rating_data_of_part = API.get_user_rating_data(part_enum_item)
             data += user_rating_data_of_part
         
         return data
@@ -200,8 +200,8 @@ class PcPartPickerAPI:
     #!
     #!
     #! 
-    def get_price_data(part: PcPartPickerPart):
-        part_data = PcPartPickerAPI.get_data_of_part(part)
+    def get_price_data(part: Part):
+        part_data = API.get_data_of_part(part)
         params = ["MerchantLink", "MerchantName", "BasePrice", "PromoValue", "ShippingText", "ShippingLink", "TaxValue", "Availability", "FinalPrice", "LastUpdateTime"]
 
         data = []
@@ -250,8 +250,8 @@ class PcPartPickerAPI:
 
     def get_price_data_of_all_parts():
         data = []
-        for part_enum_item in PcPartPickerPart:
-            price_data_of_part = PcPartPickerAPI.get_price_data(part_enum_item)
+        for part_enum_item in Part:
+            price_data_of_part = API.get_price_data(part_enum_item)
             data += price_data_of_part
         
         return data
@@ -263,8 +263,8 @@ class PcPartPickerAPI:
     #!
     #!
     # возвращает key, image_name, image_link
-    def get_image_links_data(part: PcPartPickerPart):
-        part_data = PcPartPickerAPI.get_data_of_part(part)
+    def get_image_links_data(part: Part):
+        part_data = API.get_data_of_part(part)
 
         data = []
         for block_key, block_data in part_data.items():
@@ -285,18 +285,18 @@ class PcPartPickerAPI:
 
     def get_image_links_data_of_all_parts():
         data = []
-        for part_enum_item in PcPartPickerPart:
-            image_links_data_of_part = PcPartPickerAPI.get_image_links_data(part_enum_item)
+        for part_enum_item in Part:
+            image_links_data_of_part = API.get_image_links_data(part_enum_item)
             data += image_links_data_of_part
         
         return data
 
     def get_image_data():
-        image_links = PcPartPickerAPI.get_image_links_data_of_all_parts()
+        image_links = API.get_image_links_data_of_all_parts()
 
         image_data = []
         for key, image_name, image_link in image_links:
-            image_bytes = PcPartPickerImages.get_image_from_file(image_name)
+            image_bytes = Images.get_image_from_file(image_name)
             image_data.append([ key, image_name, image_link, image_bytes ])
 
         return image_data
@@ -322,16 +322,16 @@ class PcPartPickerAPI:
         return pages_data
 
     def __get_local_entity_class_name(class_name: str):
-        class_names_mapping = PcPartPickerAPI.__get_part_mapping("class_names")
+        class_names_mapping = API.__get_part_mapping("class_names")
         for key, value in class_names_mapping.items():
             if key == class_name:
                 return value
 
-    def get_specification_data(part: PcPartPickerPart) -> List:
-        part_data = PcPartPickerAPI.get_data_of_part(part)
-        mapping = PcPartPickerAPI.__get_part_mapping(part.value)
+    def get_specification_data(part: Part) -> List:
+        part_data = API.get_data_of_part(part)
+        mapping = API.__get_part_mapping(part.value)
         
-        class_name = PcPartPickerAPI.__get_local_entity_class_name(part.value)
+        class_name = API.__get_local_entity_class_name(part.value)
         my_instance = globals()[class_name]
 
         data = []
@@ -361,9 +361,9 @@ class PcPartPickerAPI:
     #!
     #!
     # метод для получение ссылок на комплектующие конкретной категории
-    def get_links_of_part(part: PcPartPickerPart):
-        part = PcPartPickerPart.get_part_enum(part.value)
-        links = PcPartPickerLinks.get_links_from_json(part)
+    def get_links_of_part(part: Part):
+        part = Part.get_part_enum(part.value)
+        links = Links.get_links_from_json(part)
 
         return links
     
@@ -372,8 +372,8 @@ class PcPartPickerAPI:
         data = {}
 
         index = 0
-        for part in PcPartPickerPart:
-            links = PcPartPickerAPI.get_links_of_part(part)
+        for part in Part:
+            links = API.get_links_of_part(part)
             for link in links:
                 data[index] = link
                 index = index + 1
@@ -394,12 +394,12 @@ class PcPartPickerAPI:
         return names
 
     # получение уникальнх названий параметров из таблицы specification table
-    def get_unique_specification_names_of_part(part: PcPartPickerPart):
-        part_data = PcPartPickerAPI.get_data_of_part(part)
+    def get_unique_specification_names_of_part(part: Part):
+        part_data = API.get_data_of_part(part)
         
         unique_specification_names = []
         for key, blocks in part_data.items():
-            spec_table_names = PcPartPickerAPI.__get_names_from_spec_table(blocks)
+            spec_table_names = API.__get_names_from_spec_table(blocks)
             for name in spec_table_names:
                 if name not in unique_specification_names:
                     unique_specification_names.append(name)
@@ -407,18 +407,18 @@ class PcPartPickerAPI:
         return unique_specification_names
 
     # сохранение уникальных параметров для конкретной категории в json
-    def save_unique_params_to_json(part: PcPartPickerPart, unique_specification_names: dict):
+    def save_unique_params_to_json(part: Part, unique_specification_names: dict):
         current_directory = os.getcwd()
-        file_path = current_directory + PARAMETERS_MAPPING_RELATIVE_PATH + str(part) + "_unique_names.json"
+        file_path = current_directory + PARAMETERS_MAPPING_RELATIVE_PATH + str(part.value) + "_unique_names.json"
 
         with open(file_path, 'w', encoding='utf-8') as json_file:
             json.dump(unique_specification_names, json_file, indent=4, ensure_ascii=False)
 
     # сохранение всех уникальных параметров в соответствующие категории json файлы
     def save_all_unique_specification_names_to_json():
-        for part in PcPartPickerPart:
-            unique_names = PcPartPickerAPI.get_unique_specification_names_of_part(part)
-            PcPartPickerAPI.save_unique_params_to_json(part, unique_names)
+        for part in Part:
+            unique_names = API.get_unique_specification_names_of_part(part)
+            API.save_unique_params_to_json(part, unique_names)
     #!
     #!
     #!
@@ -427,8 +427,8 @@ class PcPartPickerAPI:
     #!
     #!
     # метод для получения кратких сведений о каждом параметре
-    def get_params_summary_data_of_part(part: PcPartPickerPart):
-        part_data = PcPartPickerAPI.get_part_data(part)
+    def get_params_summary_data_of_part(part: Part):
+        part_data = API.get_data_of_part(part)
 
         params_summary_data = {}  # Создаем словарь для хранения уникальных имен, типов данных и максимальных значений
         unique_params = {}
@@ -476,18 +476,18 @@ class PcPartPickerAPI:
 
     # метод для сохранения кратких сведений каждого параметра для одной категории
     # комплектующих
-    def save_params_summary_data_to_json(part: PcPartPickerPart, params_summary_data: dict):
+    def save_params_summary_data_to_json(part: Part, params_summary_data: dict):
         current_directory = os.getcwd()
-        file_path = current_directory + PARAMETERS_MAPPING_RELATIVE_PATH + str(part) + "_unique_names.json"
+        file_path = current_directory + PARAMETERS_MAPPING_RELATIVE_PATH + str(part.value) + "_unique_names.json"
 
         with open(file_path, 'w', encoding='utf-8') as json_file:
             json.dump(params_summary_data, json_file, indent=4, ensure_ascii=False)
 
     # сохранение всех кратких сведений
     def save_all_params_summary_data_to_json():
-        for part in PcPartPickerPart:
-            params_summary_data = PcPartPickerAPI.get_params_summary_data_of_part(part)
-            PcPartPickerAPI.save_params_summary_data_to_json(part, params_summary_data)
+        for part in Part:
+            params_summary_data = API.get_params_summary_data_of_part(part)
+            API.save_params_summary_data_to_json(part, params_summary_data)
     #!
     #!
     #!
@@ -498,8 +498,8 @@ class PcPartPickerAPI:
     #!
     #!
     # получить все значения параметра
-    def get_all_values_of_parameter(part: PcPartPickerPart, header_name: str, parameter_name: str) -> list:
-        part_data = PcPartPickerAPI.get_data_of_part(part)
+    def get_all_values_of_parameter(part: Part, header_name: str, parameter_name: str) -> list:
+        part_data = API.get_data_of_part(part)
 
         values = []
         for block_key, block_data in part_data.items():
@@ -516,8 +516,8 @@ class PcPartPickerAPI:
         return values
 
     # получить только уникальные значения параметра
-    def get_unique_values_of_parameter(part: PcPartPickerPart, header_name: str, parameter_name: str) -> list:
-        part_data = PcPartPickerAPI.get_data_of_part(part)
+    def get_unique_values_of_parameter(part: Part, header_name: str, parameter_name: str) -> list:
+        part_data = API.get_data_of_part(part)
 
         values = []
         for block_key, block_data in part_data.items():
@@ -546,8 +546,8 @@ class PcPartPickerAPI:
         unique_params = {}
         params_summary_data = {}
         params_summary_data["category_length"] = 0
-        for part in PcPartPickerPart:
-            part_data = PcPartPickerAPI.get_part_data(part)
+        for part in Part:
+            part_data = API.get_part_data(part)
             params_summary_data["category_length"] += len(part_data)
             # Перебираем блоки данных
             for block_key, block_data in part_data.items():
@@ -593,8 +593,8 @@ class PcPartPickerAPI:
         return params_summary_data
     
     def save_all_parameters_summary_data_to_json(header_name: str):
-        params_summary_data = PcPartPickerAPI.get_parameters_summary_data(header_name)
-        PcPartPickerAPI.save_params_summary_data_to_json(header_name, params_summary_data)
+        params_summary_data = API.get_parameters_summary_data(header_name)
+        API.save_params_summary_data_to_json(header_name, params_summary_data)
     #!
     #!
     #!
@@ -609,8 +609,8 @@ class PcPartPickerAPI:
 
         params_summary_data = {}
         params_summary_data["category_length"] = 0
-        for part in PcPartPickerPart:
-            part_data = PcPartPickerAPI.get_part_data(part.value)
+        for part in Part:
+            part_data = API.get_part_data(part.value)
             params_summary_data["category_length"] += len(part_data)
             # Перебираем блоки данных
             for block_key, block_data in part_data.items():
@@ -652,15 +652,15 @@ class PcPartPickerAPI:
         return params_summary_data
     
     def save_all_parameters_summary_price_data_to_json():
-        params_summary_data = PcPartPickerAPI.get_parameters_summary_price_data()
-        PcPartPickerAPI.save_params_summary_data_to_json("PriceData", params_summary_data)
+        params_summary_data = API.get_parameters_summary_price_data()
+        API.save_params_summary_data_to_json("PriceData", params_summary_data)
     #!
     #!
     #!
 
     def check_includes_cooler():
-        values = PcPartPickerAPI.get_all_values_of_parameter("cpu", "SpecificationTable", "Includes Cooler")
-        values1 = PcPartPickerAPI.get_all_values_of_parameter("cpu", "SpecificationTable", "Includes CPU Cooler")
+        values = API.get_all_values_of_parameter("cpu", "SpecificationTable", "Includes Cooler")
+        values1 = API.get_all_values_of_parameter("cpu", "SpecificationTable", "Includes CPU Cooler")
 
         if values == values1:
             print("Списки соответствуют.")

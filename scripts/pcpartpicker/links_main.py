@@ -1,6 +1,6 @@
 import logging
 
-from src.pcpartpicker.PcPartPickerLinks import PcPartPickerLinks
+from src.pcpartpicker.Links import Links
 
 LOG_PATH = "data\\pcpartpicker\\logs\\pcpartpicker_links.log"
 
@@ -14,6 +14,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-parser = PcPartPickerLinks(logger)
+parser = Links(logger)
 with parser:
     parser.get_all_links()

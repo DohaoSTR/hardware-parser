@@ -1,8 +1,8 @@
 from dataclasses import dataclass, fields
 
-from src.pcpartpicker.db_entities.CPU.PcPartPickerCPUCacheEntity import PcPartPickerCPUCacheEntity
-from src.pcpartpicker.db_entities.CPU.PcPartPickerCPUCoreEntity import PcPartPickerCPUCoreEntity
-from src.pcpartpicker.db_entities.CPU.PcPartPickerCPUMainDataEntity import PcPartPickerCPUMainDataEntity
+from src.pcpartpicker.db_entities.CPU.CPUCacheEntity import CPUCacheEntity
+from src.pcpartpicker.db_entities.CPU.CPUCoreEntity import CPUCoreEntity
+from src.pcpartpicker.db_entities.CPU.CPUMainDataEntity import CPUMainDataEntity
 
 from src.pcpartpicker.db_entities.GPU.GPUConnectData import GPUConnectData
 from src.pcpartpicker.db_entities.GPU.GPUExternalPower import GPUExternalPowerData

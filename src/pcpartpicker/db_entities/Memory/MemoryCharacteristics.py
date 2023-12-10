@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class MemoryCharacteristics(Base):
-    __tablename__ = 'pcpartpicker_memory_characteristics'
+    __tablename__ = 'memory_characteristics'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     memory_speed = Column(Integer, nullable=True)
@@ -21,5 +21,5 @@ class MemoryCharacteristics(Base):
     trp = Column(Integer, nullable=True)
     tras = Column(Integer, nullable=True)
 
-    memory_id = Column(Integer, ForeignKey('pcpartpicker_memory_main_data.id'), unique=True, nullable=False)
+    memory_id = Column(Integer, ForeignKey('memory_main_data.id'), unique=True, nullable=False)
     memory = relationship('MemoryMainData')

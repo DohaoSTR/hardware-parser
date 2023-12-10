@@ -15,4 +15,4 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 mapper = UserBenchmarkToDBMapper(logger)
-mapper.add_metrics()
+mapper.add_unadded_fps_data()

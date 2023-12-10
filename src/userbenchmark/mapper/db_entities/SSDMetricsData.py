@@ -30,5 +30,5 @@ class SSDMetricsData(Base):
     avg_4k_64_thread_write_speed = Column(DOUBLE)
     avg_4k_64_thread_mixed_io_speed = Column(DOUBLE)
 
-    part_id = Column(Integer, ForeignKey('parts.id'), unique=True, nullable=False)
+    part_id = Column(Integer, ForeignKey('parts.id'), nullable=False)
     part = relationship("PartEntity")

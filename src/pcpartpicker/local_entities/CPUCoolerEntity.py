@@ -8,7 +8,7 @@ from ..db_entities.CPUCooler.CPUCoolerData import CPUCoolerData
 from ..db_entities.CPUCooler.CPUCoolerSocket import CPUCoolerSocket
 
 @dataclass
-class PcPartPickerCPUCoolerEntity(BaseEntity):
+class CPUCoolerEntity(BaseEntity):
     model: str = None
     fan_rpm: str = None
     noise_level: str = None

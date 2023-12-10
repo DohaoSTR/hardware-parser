@@ -10,7 +10,7 @@ from src.userbenchmark.mapper.db_entities.RAMMetricsData import RAMMetricsData
 
 @dataclass
 class BaseEntity:
-    key: str
+    key: int
 
     def populate_entity(entity, class_name, foreign_column_name):
         my_instance = globals()[class_name]

@@ -1,5 +1,5 @@
-from .PcPartPickerParameters import PcPartPickerParameters
-from .PcPartPickerPart import PcPartPickerPart
+from .Parameters import Parameters
+from .Part import Part
 
 from ..RequestWebDriver import RequestWebDriver
 
@@ -14,7 +14,7 @@ SUMMARY_IMAGES_DATA_RELATIVE_PATH = "\\data\\pcpartpicker\\images\\links\\"
 
 # класс для получения изображений комплектующих
 # и работы с изображениями
-class PcPartPickerImages:
+class Images:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ class PcPartPickerImages:
         return results
     
     # сохранение краткой информации о ссылках на изображения
-    def save_summary_part_images_to_json(part_data, part: PcPartPickerPart):
+    def save_summary_part_images_to_json(part_data, part: Part):
         current_file_path = os.path.abspath(__file__)
         save_directory = os.path.dirname(current_file_path) + "\\data\\images\\links\\"
         filename = part.value[0] + "_summary"
@@ -79,10 +79,10 @@ class PcPartPickerImages:
 
     # сохранение краткой информации об всех ссылках на изображения
     def save_all_summary_part_images():
-        for part in PcPartPickerPart:
-            part_data = PcPartPickerParameters.get_pages_data_from_json(part)
-            summary_part_images = PcPartPickerImages.get_summary_part_images(part_data)
-            PcPartPickerImages.save_summary_part_images_to_json(summary_part_images, part)
+        for part in Part:
+            part_data = Parameters.get_pages_data_from_json(part)
+            summary_part_images = Images.get_summary_part_images(part_data)
+            Images.save_summary_part_images_to_json(summary_part_images, part)
 
     # получение данных о каждом изображении в формате:
     # { Filename: имя файла для сохранения, Link: ссылка}
@@ -127,16 +127,16 @@ class PcPartPickerImages:
 
             request_web_driver = RequestWebDriver(self.logger)
             response = request_web_driver.get_response(link)
-            PcPartPickerImages.__save_image(filename, response)
+            Images.__save_image(filename, response)
 
             self.logger.info(f"{index}. Получено изображение - Link: {link}.")
             index = index + 1
 
     # сохранения всех изображений для каждой комплектующей
     def save_images_for_all_parts(self):
-        for part in PcPartPickerPart:
-            part_data = PcPartPickerParameters.get_pages_data_from_json(part)
-            image_items = PcPartPickerImages.get_image_items(part_data)
+        for part in Part:
+            part_data = Parameters.get_pages_data_from_json(part)
+            image_items = Images.get_image_items(part_data)
             self.save_images(image_items)
     
     def get_image_from_file(filename: str):
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     file_handler.setFormatter(formatter)
 
-    parser = PcPartPickerImages(logger)
+    parser = Images(logger)
     with parser:
-        PcPartPickerImages.save_all_summary_part_images()
+        Images.save_all_summary_part_images()
         parser.save_images_for_all_parts()

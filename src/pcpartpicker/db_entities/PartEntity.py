@@ -2,8 +2,8 @@ from sqlalchemy import Column, Integer, String
 
 from ..BaseSQLAlchemy import Base
 
-class PcPartPickerPartEntity(Base):
-    __tablename__ = 'pcpartpicker_part'
+class PartEntity(Base):
+    __tablename__ = 'part'
     
     id = Column(Integer, primary_key=True)
     manufacturer = Column(String(100), nullable=False)

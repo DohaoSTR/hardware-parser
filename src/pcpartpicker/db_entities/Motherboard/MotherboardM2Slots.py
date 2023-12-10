@@ -4,12 +4,12 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class MotherboardM2Slots(Base):
-    __tablename__ = 'pcpartpicker_motherboard_m2_slots'
+    __tablename__ = 'motherboard_m2_slots'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     standard_size = Column(Integer)
     key_name = Column(String(10))
     description = Column(String(250))
 
-    motherboard_id = Column(Integer, ForeignKey('pcpartpicker_motherboard_main_data.id'), nullable=False)
+    motherboard_id = Column(Integer, ForeignKey('motherboard_main_data.id'), nullable=False)
     motherboard = relationship('MotherboardMainData')

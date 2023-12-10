@@ -14,5 +14,5 @@ class PartUserData(Base):
     vfm = Column(DOUBLE)
     newest = Column(Integer)
 
-    part_id = Column(Integer, ForeignKey('parts.id'), unique=True, nullable=False)
+    part_id = Column(Integer, ForeignKey('parts.id'), nullable=False)
     part = relationship("PartEntity")

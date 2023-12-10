@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class PowerSupplyData(Base):
-    __tablename__ = 'pcpartpicker_power_supply'
+    __tablename__ = 'power_supply'
 
     id = Column(Integer, primary_key=True)
     model = Column(String(250))
@@ -17,5 +17,5 @@ class PowerSupplyData(Base):
     color = Column(String(250))
     fan = Column(String(10))
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'), unique=True)
-    part = relationship('PcPartPickerPartEntity')
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True)
+    part = relationship('PartEntity')

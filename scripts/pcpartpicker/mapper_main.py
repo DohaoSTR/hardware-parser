@@ -1,4 +1,4 @@
-from src.pcpartpicker.PcPartPickerToDBMapper import PcPartPickerToDBMapper
+from src.pcpartpicker.DatabaseMapper import DatabaseMapper
 
 import logging
 
@@ -14,5 +14,5 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-db = PcPartPickerToDBMapper(logger)
+db = DatabaseMapper(logger)
 db.add_all_power_supply()

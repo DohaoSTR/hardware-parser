@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class MotherboardConnectData(Base):
-    __tablename__ = 'pcpartpicker_motherboard_connect_data'
+    __tablename__ = 'motherboard_connect_data'
     
     id = Column(Integer, primary_key=True)
     
@@ -29,5 +29,5 @@ class MotherboardConnectData(Base):
     sas_6_0 = Column(Integer)
     sata_1_5 = Column(Integer)
 
-    motherboard_id = Column(Integer, ForeignKey('pcpartpicker_motherboard_main_data.id'), unique=True, nullable=False)
+    motherboard_id = Column(Integer, ForeignKey('motherboard_main_data.id'), unique=True, nullable=False)
     motherboard = relationship('MotherboardMainData')

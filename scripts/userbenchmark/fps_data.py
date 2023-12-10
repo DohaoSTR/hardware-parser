@@ -1,4 +1,4 @@
-from src.userbenchmark.UserBenchmarkAsyncFPSData import UserBenchmarkAsyncFPSData
+from src.userbenchmark.mapper.UserBenchmarkAPI import UserBenchmarkAPI
 
-data = UserBenchmarkAsyncFPSData.get_all_fps_data()
+data = UserBenchmarkAPI.get_all_fps_data()
 print(len(data))

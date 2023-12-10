@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class CPUCoolerData(Base):
-    __tablename__ = 'pcpartpicker_cpu_cooler'
+    __tablename__ = 'cpu_cooler'
 
     id = Column(Integer, primary_key=True)
     model = Column(String(250))
@@ -19,5 +19,5 @@ class CPUCoolerData(Base):
     min_noise_level = Column(DOUBLE)
     max_noise_level = Column(DOUBLE)
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'), unique=True)
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True)
+    part = relationship("PartEntity")

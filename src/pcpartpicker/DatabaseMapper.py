@@ -1,18 +1,18 @@
 import sys
 import traceback
 
-from .db_entities.PcPartPickerImageLinkEntity import PcPartPickerImageLinkEntity
-from .db_entities.PcPartPickerImageDataEntity import PcPartPickerImageDataEntity
-from .db_entities.PcPartPickerPartEntity import PcPartPickerPartEntity
-from .db_entities.PcPartPickerPartNumberEntity import PcPartPickerPartNumber
-from .db_entities.PcPartPickerUserRatingEntity import PcPartPickerUserRatingEntity
-from .db_entities.PcPartPickerPartPriceEntity import PcPartPickerPartPriceEntity
+from .db_entities.ImageLinkEntity import ImageLinkEntity
+from .db_entities.ImageDataEntity import ImageDataEntity
+from .db_entities.PartEntity import PartEntity
+from .db_entities.PartNumberEntity import PartNumberEntity
+from .db_entities.UserRatingEntity import UserRatingEntity
+from .db_entities.PartPriceEntity import PartPriceEntity
 
 from .db_entities.CPU.CPUCacheType import CPUCacheType
-from .local_entities.PcPartPickerInternalHardDriveEntity import InternalDriveType
+from .local_entities.InternalHardDriveEntity import InternalDriveType
 
-from .PcPartPickerPart import PcPartPickerPart
-from .PcPartPickerAPI import PcPartPickerAPI
+from .Part import Part
+from .API import API
 
 import logging
 from logging import Logger
@@ -24,9 +24,9 @@ from sqlalchemy.orm import declarative_base
 HOST = "localhost"
 USER_NAME = "root"
 PASSWORD = "root"
-DATABASE_NAME = "configure_data"
+DATABASE_NAME = "pcpartpicker_data"
 
-class PcPartPickerToDBMapper:
+class DatabaseMapper:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class PcPartPickerToDBMapper:
     #
     def add_all_parts_main_data(self):
         try:
-            parts_entities = PcPartPickerAPI.get_main_data_of_all_parts()
+            parts_entities = API.get_main_data_of_all_parts()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
@@ -71,14 +71,14 @@ class PcPartPickerToDBMapper:
 
     def add_all_part_number_data(self):
         try:
-            part_number_data = PcPartPickerAPI.get_part_number_data_of_all_parts()
+            part_number_data = API.get_part_number_data_of_all_parts()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for key, part_number in part_number_data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=key).first()
-                part_number = PcPartPickerPartNumber(part_number=part_number, part=part) 
+                part = self.session.query(PartEntity).filter_by(key=key).first()
+                part_number = PartNumberEntity(part_number=part_number, part=part) 
                 self.session.add(part_number)
                 
             self.session.commit()
@@ -89,18 +89,18 @@ class PcPartPickerToDBMapper:
 
     def add_all_user_rating_data(self):
         try:
-            user_rating_data = PcPartPickerAPI.get_user_rating_data_of_all_parts()
+            user_rating_data = API.get_user_rating_data_of_all_parts()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             none_count = 0
             for key, ratings_count, average_rating, five_star, four_star, three_star, two_star, one_star in user_rating_data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=key).first()
+                part = self.session.query(PartEntity).filter_by(key=key).first()
                 
                 params = [ratings_count, average_rating, five_star, four_star, three_star, two_star, one_star]
                 if all(p is not None for p in params):
-                    user_rating = PcPartPickerUserRatingEntity(ratings_count=ratings_count, average_rating=average_rating, five_star=five_star, four_star=four_star, three_star=three_star,two_star=two_star,one_star=one_star, part=part) 
+                    user_rating = UserRatingEntity(ratings_count=ratings_count, average_rating=average_rating, five_star=five_star, four_star=four_star, three_star=three_star,two_star=two_star,one_star=one_star, part=part) 
                     self.session.add(user_rating)
                 else:
                     none_count += 1
@@ -114,18 +114,18 @@ class PcPartPickerToDBMapper:
         
     def add_all_price_data(self):
         try:
-            price_data = PcPartPickerAPI.get_price_data_of_all_parts()
+            price_data = API.get_price_data_of_all_parts()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             none_count = 0
             for key, merchant_link, merchant_name, base_price, promo_value, shipping_text, shipping_link, tax_value, availability, final_price, currency, last_update_time in price_data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=key).first()
+                part = self.session.query(PartEntity).filter_by(key=key).first()
                 
                 params = [merchant_link, merchant_name, base_price, promo_value, shipping_text, shipping_link, tax_value, availability, final_price, last_update_time]
                 if any(p is not None for p in params):
-                    price_entity = PcPartPickerPartPriceEntity(merchant_link=merchant_link, merchant_name=merchant_name, base_price=base_price, 
+                    price_entity = PartPriceEntity(merchant_link=merchant_link, merchant_name=merchant_name, base_price=base_price, 
                                                               promo_value=promo_value, shipping_text=shipping_text,shipping_link=shipping_link,
                                                               tax_value=tax_value, availability=availability, final_price=final_price, currency=currency,
                                                               last_update_time=last_update_time, part=part) 
@@ -142,15 +142,15 @@ class PcPartPickerToDBMapper:
 
     def add_all_image_link_data(self):
         try:
-            image_link_data = PcPartPickerAPI.get_image_links_data_of_all_parts()
+            image_link_data = API.get_image_links_data_of_all_parts()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for key, name, link in image_link_data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=key).first()
+                part = self.session.query(PartEntity).filter_by(key=key).first()
                 
-                image_link_entity = PcPartPickerImageLinkEntity(name=name, link=link, part=part) 
+                image_link_entity = ImageLinkEntity(name=name, link=link, part=part) 
                 self.session.add(image_link_entity)
             
             self.session.commit()
@@ -161,18 +161,18 @@ class PcPartPickerToDBMapper:
 
     def add_all_image_data(self):
         try:
-            image_data = PcPartPickerAPI.get_image_data()
+            image_data = API.get_image_data()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for key, name, link, bytes in image_data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=key).first()
-                image_link = self.session.query(PcPartPickerImageLinkEntity).filter_by(part_id=part.id).all()
+                part = self.session.query(PartEntity).filter_by(key=key).first()
+                image_link = self.session.query(ImageLinkEntity).filter_by(part_id=part.id).all()
 
                 for item in image_link:
                     if item.name == name:
-                        image_data_entity = PcPartPickerImageDataEntity(image_data=bytes, image_link=item) 
+                        image_data_entity = ImageDataEntity(image_data=bytes, image_link=item) 
                         self.session.add(image_data_entity)
             
             self.session.commit()
@@ -190,13 +190,13 @@ class PcPartPickerToDBMapper:
     #
     def add_all_cpu_data(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.CPU)
+            data = API.get_specification_data(Part.CPU)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
 
                 main_data_entity = item.main_data
                 main_data_entity.part = part
@@ -226,13 +226,13 @@ class PcPartPickerToDBMapper:
     
     def add_all_gpu_data(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.VIDEO_CARD)
+            data = API.get_specification_data(Part.VIDEO_CARD)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
                 
                 main_data_entity = item.main_data
                 main_data_entity.part = part
@@ -273,13 +273,13 @@ class PcPartPickerToDBMapper:
     
     def add_all_memory_data(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.MEMORY)
+            data = API.get_specification_data(Part.MEMORY)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
 
                 main_data_entity = item.memory_main_data
                 main_data_entity.part = part
@@ -299,13 +299,13 @@ class PcPartPickerToDBMapper:
     
     def add_all_motherboard_data(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.MOTHEBOARD)
+            data = API.get_specification_data(Part.MOTHEBOARD)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
 
                 main_data_entity = item.main_data
                 main_data_entity.part = part
@@ -355,13 +355,13 @@ class PcPartPickerToDBMapper:
     
     def add_all_internal_hard_drive_data(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.STORAGE)
+            data = API.get_specification_data(Part.STORAGE)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
 
                 if item.database_type == InternalDriveType.HDD:
                     hdd = item.hdd
@@ -389,13 +389,13 @@ class PcPartPickerToDBMapper:
 
     def add_all_case_data(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.CASE)
+            data = API.get_specification_data(Part.CASE)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
 
                 case_data = item.case_data
                 case_data.part = part
@@ -449,13 +449,13 @@ class PcPartPickerToDBMapper:
     
     def add_all_case_fan_data(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.CASE_FAN)
+            data = API.get_specification_data(Part.CASE_FAN)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
 
                 case_fan = item.case_fan
                 case_fan.part = part
@@ -498,13 +498,13 @@ class PcPartPickerToDBMapper:
     
     def add_all_cpu_cooler_data(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.CPU_COOLER)
+            data = API.get_specification_data(Part.CPU_COOLER)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
 
                 cooler_data = item.cooler_data
                 cooler_data.part = part
@@ -525,13 +525,13 @@ class PcPartPickerToDBMapper:
     
     def add_all_power_supply(self):
         try:
-            data = PcPartPickerAPI.get_specification_data(PcPartPickerPart.POWER_SUPPLY)
+            data = API.get_specification_data(Part.POWER_SUPPLY)
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
             for item in data:
-                part = self.session.query(PcPartPickerPartEntity).filter_by(key=item.key).first()
+                part = self.session.query(PartEntity).filter_by(key=item.key).first()
 
                 power_supply = item.power_supply
                 power_supply.part = part

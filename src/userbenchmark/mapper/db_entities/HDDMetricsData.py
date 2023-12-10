@@ -24,5 +24,5 @@ class HDDMetricsData(Base):
     peak_4k_random_mixed_io_speed = Column(DOUBLE) 
     peak_sequential_sustained_write_60s_average = Column(DOUBLE)
 
-    part_id = Column(Integer, ForeignKey('parts.id'), unique=True, nullable=False)
+    part_id = Column(Integer, ForeignKey('parts.id'), nullable=False)
     part = relationship("PartEntity")

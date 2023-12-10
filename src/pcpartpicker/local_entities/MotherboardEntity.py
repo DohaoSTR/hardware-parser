@@ -13,7 +13,7 @@ from ..db_entities.Motherboard.MotherboardConnectData import MotherboardConnectD
 from ..BaseEntity import BaseEntity, MultiInterface
 
 @dataclass
-class PcPartPickerMotherboardEntity(BaseEntity):
+class MotherboardEntity(BaseEntity):
     socket: str = None
     memory_speed: str = None
     m2_slots: str = None

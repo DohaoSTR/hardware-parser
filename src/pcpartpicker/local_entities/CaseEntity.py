@@ -11,7 +11,7 @@ from ..db_entities.Case.CaseExpansionSlot import CaseExpansionSlot
 from ..db_entities.Case.CaseMotherboardFormFactor import CaseMotherboardFormFactor
 
 @dataclass
-class PcPartPickerCaseEntity(BaseEntity):
+class CaseEntity(BaseEntity):
     type: str = None
     color: str = None
     power_supply: float = None

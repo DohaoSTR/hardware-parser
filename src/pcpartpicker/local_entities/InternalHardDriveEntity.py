@@ -14,7 +14,7 @@ class InternalDriveType(Enum):
     HYBRID = "Hybrid"
 
 @dataclass
-class PcPartPickerInternalHardDriveEntity(BaseEntity):
+class InternalHardDriveEntity(BaseEntity):
     capacity: float = None
     price: float = None
     type: str = None

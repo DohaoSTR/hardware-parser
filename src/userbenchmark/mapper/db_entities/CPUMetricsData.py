@@ -22,5 +22,5 @@ class CPUMetricsData(Base):
     oc_octa_core_speed = Column(DOUBLE)
     oc_multi_core_speed = Column(DOUBLE)
 
-    part_id = Column(Integer, ForeignKey('parts.id'), unique=True, nullable=False)
+    part_id = Column(Integer, ForeignKey('parts.id'), nullable=False)
     part = relationship("PartEntity")

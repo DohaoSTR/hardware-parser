@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class MemoryMainData(Base):
-    __tablename__ = 'pcpartpicker_memory_main_data'
+    __tablename__ = 'memory_main_data'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     currency = Column(String(10), nullable=True)
@@ -15,5 +15,5 @@ class MemoryMainData(Base):
     heat_spreader = Column(String(10), nullable=True)
     model = Column(String(250), nullable=True)
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'),  unique=True, nullable=False)
-    part = relationship('PcPartPickerPartEntity')
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True, nullable=False)
+    part = relationship('PartEntity')

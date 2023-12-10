@@ -10,7 +10,7 @@ from ..db_entities.PowerSupply.PowerSupplyEfficiency import PowerSupplyEfficienc
 from ..db_entities.PowerSupply.PowerSupplyOutput import PowerSupplyOutput
 
 @dataclass
-class PcPartPickerPowerSupplyEntity(BaseEntity):
+class PowerSupplyEntity(BaseEntity):
     model: str = None
     type: str = None
     efficiency_rating: str = None

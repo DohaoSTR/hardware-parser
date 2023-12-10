@@ -3,11 +3,11 @@ from sqlalchemy.orm import relationship
 
 from ..BaseSQLAlchemy import Base
 
-class PcPartPickerPartNumber(Base):
-    __tablename__ = 'pcpartpicker_part_number'
+class PartNumberEntity(Base):
+    __tablename__ = 'part_number'
     
     id = Column(Integer, primary_key=True) 
     part_number = Column(String)
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'))
     
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'))
+    part = relationship("PartEntity")

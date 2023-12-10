@@ -35,7 +35,7 @@ WEBCAM_PAGES = 1
 # CPU = ["cpu", CPU_PAGES]
 # "cpu" - название категории используемое сайтом в ссылках
 # CPU_PAGES - кол-во страниц для каждой категории
-class PcPartPickerPart(Enum):
+class Part(Enum):
     CPU = "cpu"
     CPU_COOLER = "cpu-cooler"
     MOTHEBOARD = "motherboard"
@@ -66,43 +66,43 @@ class PcPartPickerPart(Enum):
     WEBCAM = "webcam"
 
     def get_part_enum(part_name: str):
-        for part in PcPartPickerPart:
+        for part in Part:
             if part_name == part.value:
                 return part
             
         return None
     
     def get_pages_count(part_name: str):
-        for part in PcPartPickerPart:
+        for part in Part:
             if part_name == part.value:
-                pages_count = PcPartPickerPart.PAGES_COUNT_MAPPING.get(part)
+                pages_count = Part.PAGES_COUNT_MAPPING.get(part)
                 return pages_count
             
         return None
 
-PcPartPickerPart.PAGES_COUNT_MAPPING = {
-    PcPartPickerPart.CPU: CPU_PAGES,
-    PcPartPickerPart.CPU_COOLER: CPU_COOLERS_PAGES,
-    PcPartPickerPart.MOTHEBOARD: MOTHEBOARDS_PAGES,
-    PcPartPickerPart.MEMORY: MEMORY_PAGES,
-    PcPartPickerPart.STORAGE: STORAGES_PAGES,
-    PcPartPickerPart.VIDEO_CARD: VIDEO_CARDS_PAGES,
-    PcPartPickerPart.POWER_SUPPLY: POWER_SUPPLIES_PAGES,
-    PcPartPickerPart.CASE: CASES_PAGES,
-    PcPartPickerPart.CASE_FAN: CASE_FAN_PAGES,
-    PcPartPickerPart.UPS: UPS_PAGES,
-    PcPartPickerPart.OPTICAL_DRIVE: OPTICAL_DRIVE_PAGES,
-    PcPartPickerPart.EXTERNAL_STORAGE: EXTERNAL_STORAGE_PAGES,
-    PcPartPickerPart.FAN_CONTROLLER: FAN_CONTROLLER_PAGES,
-    PcPartPickerPart.THERMAL_PASTE: THERMAL_PASTE_PAGES,
-    PcPartPickerPart.SOUND_CARD: SOUND_CARD_PAGES,
-    PcPartPickerPart.WIRED_NETWORK_CARD: WIRED_NETWORK_CARD_PAGES,
-    PcPartPickerPart.WIRELESS_NETWORK_CARD: WIRELESS_NETWORK_CARD_PAGES,
-    PcPartPickerPart.MONITOR: MONITOR_PAGES,
-    PcPartPickerPart.OPERATING_SYSTEM: OPERATING_SYSTEM_PAGES,
-    PcPartPickerPart.HEADPHONES: HEADPHONES_PAGES,
-    PcPartPickerPart.KEYBOARD: KEYBOARD_PAGES,
-    PcPartPickerPart.MOUSE: MOUSE_PAGES,
-    PcPartPickerPart.SPEAKERS: SPEAKERS_PAGES,
-    PcPartPickerPart.WEBCAM: WEBCAM_PAGES,
+Part.PAGES_COUNT_MAPPING = {
+    Part.CPU: CPU_PAGES,
+    Part.CPU_COOLER: CPU_COOLERS_PAGES,
+    Part.MOTHEBOARD: MOTHEBOARDS_PAGES,
+    Part.MEMORY: MEMORY_PAGES,
+    Part.STORAGE: STORAGES_PAGES,
+    Part.VIDEO_CARD: VIDEO_CARDS_PAGES,
+    Part.POWER_SUPPLY: POWER_SUPPLIES_PAGES,
+    Part.CASE: CASES_PAGES,
+    Part.CASE_FAN: CASE_FAN_PAGES,
+    Part.UPS: UPS_PAGES,
+    Part.OPTICAL_DRIVE: OPTICAL_DRIVE_PAGES,
+    Part.EXTERNAL_STORAGE: EXTERNAL_STORAGE_PAGES,
+    Part.FAN_CONTROLLER: FAN_CONTROLLER_PAGES,
+    Part.THERMAL_PASTE: THERMAL_PASTE_PAGES,
+    Part.SOUND_CARD: SOUND_CARD_PAGES,
+    Part.WIRED_NETWORK_CARD: WIRED_NETWORK_CARD_PAGES,
+    Part.WIRELESS_NETWORK_CARD: WIRELESS_NETWORK_CARD_PAGES,
+    Part.MONITOR: MONITOR_PAGES,
+    Part.OPERATING_SYSTEM: OPERATING_SYSTEM_PAGES,
+    Part.HEADPHONES: HEADPHONES_PAGES,
+    Part.KEYBOARD: KEYBOARD_PAGES,
+    Part.MOUSE: MOUSE_PAGES,
+    Part.SPEAKERS: SPEAKERS_PAGES,
+    Part.WEBCAM: WEBCAM_PAGES,
 }

@@ -7,7 +7,7 @@ from ..db_entities.Memory.MemoryMainData import MemoryMainData
 from ..db_entities.Memory.MemoryCharacteristics import MemoryCharacteristics
 
 @dataclass
-class PcPartPickerMemoryEntity(BaseEntity):
+class MemoryEntity(BaseEntity):
     speed: str = None
     memory_speed: int = None
     memory_type: str = None

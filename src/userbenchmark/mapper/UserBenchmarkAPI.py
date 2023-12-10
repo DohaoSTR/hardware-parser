@@ -1,4 +1,5 @@
 import csv
+from enum import Enum
 import json
 import os
 from typing import List
@@ -13,7 +14,6 @@ from src.userbenchmark.UserBenchmarkAsyncFPSData import UserBenchmarkAsyncFPSDat
 from src.userbenchmark.UserBenchmarkResolution import UserBenchmarkResolution
 from src.userbenchmark.UserBenchmarkFPSCombination import UserBenchmarkFPSCombination
 from src.userbenchmark.UserBenchmarkGameSettings import UserBenchmarkGameSettings
-from src.userbenchmark.UserBenchmarkCompareKeyType import UserBenchmarkCompareKeyType
 
 from src.userbenchmark.UserBenchmarkCompareKeys import UserBenchmarkCompareKeys
 from src.userbenchmark.UserBenchmarkKeysHandling import UserBenchmarkKeysHandling
@@ -32,7 +32,6 @@ SUMMARY_DATA_RELATIVE_PATH = "\\data\\userbenchmark\\summary_data\\"
 PARAMETERS_MAPPING_RELATIVE_PATH = "\\data\\userbenchmark\\parameters_mapping\\"
 
 class UserBenchmarkAPI:
-    #Type, PartNumber, Brand, Model, Rank, Benchmark, Samples, URL
     def get_resource(part: UserBenchmarkPart) -> List[PartEntity]:
         current_directory = os.getcwd()
         csv_link = current_directory + "\\data\\userbenchmark\\resources\\" + part.value + "_UserBenchmarks.csv"
@@ -349,8 +348,117 @@ class UserBenchmarkAPI:
     #
 
     #
-    def get_fps_data():
-        pass
+    def __get_fps_in_game_data(json_data, 
+                               fps_combination: UserBenchmarkFPSCombination, 
+                               resolution: UserBenchmarkResolution,
+                               game_settings: UserBenchmarkGameSettings,
+                               game_key, 
+                               index):
+        data = {}
+        for key, values in json_data.items():
+            fps_value = 0
+            samples_value = 0
+            cpu_key = 0
+            gpu_key = 0
+            for field, value in values.items():
+                if field == "fps_value":
+                    fps_value = value
+                elif field == "samples_value":
+                    samples_value = value
+
+            if fps_combination is UserBenchmarkFPSCombination.CPU:
+                cpu_key = key
+                gpu_key = 0
+            elif fps_combination is UserBenchmarkFPSCombination.GPU:
+                cpu_key = 0
+                gpu_key = key
+            elif fps_combination is UserBenchmarkFPSCombination.GPU_CPU:
+                for field, value in values.items():
+                    if field == "cpu_key":
+                        cpu_key = value
+                    elif field == "gpu_key":
+                        gpu_key = value
+
+            game_settings_value = UserBenchmarkGameSettings.get_database_value(game_settings.value)
+            resolution_value = UserBenchmarkResolution.get_database_value(resolution.value)
+            
+            data[index] = {
+                "cpu_key": int(cpu_key),
+                "gpu_key": int(gpu_key),
+                "fps_value": fps_value,
+                "samples_value": samples_value,
+                "game_key": int(game_key),
+                "game_settings": game_settings_value,
+                "resolution": resolution_value }
+                            
+            index = index + 1
+
+        return data, index
+
+    def parse_fps_folder_name(name_folder: str):
+        elements = name_folder.split("_")
+
+        combination = None
+        resolution = None
+        game_settings = None
+        if len(elements) == 4:
+            combination = UserBenchmarkFPSCombination.GPU_CPU
+            game_settings = UserBenchmarkGameSettings.get_part_enum(elements[2])
+            resolution = UserBenchmarkResolution.get_part_enum(elements[3])
+        elif len(elements) == 3:
+            combination = UserBenchmarkFPSCombination.get_part_enum(elements[0])
+            game_settings = UserBenchmarkGameSettings.get_part_enum(elements[1])
+            resolution = UserBenchmarkResolution.get_part_enum(elements[2])
+
+        return { 
+            "Combination": combination,
+            "Resolution": resolution,
+            "GameSettings": game_settings
+        }
+
+    def get_fps_in_games_folder(name_folder: str):
+        current_directory = os.getcwd()
+        folder_path = current_directory + "\\data\\userbenchmark\\fps_in_games\\" + name_folder + "\\"
+
+        settings_item = UserBenchmarkAPI.parse_fps_folder_name(name_folder)
+
+        data = {}
+        index = 0
+
+        for filename in os.listdir(folder_path):
+            if filename.endswith(".json"):
+                file_path = os.path.join(folder_path, filename)
+                with open(file_path, "r", encoding="utf-8") as json_file:
+                    try:
+                        json_data = json.load(json_file)
+
+                        game_key = None
+                        if settings_item["Combination"] == UserBenchmarkFPSCombination.GPU_CPU:
+                            game_key = str(filename.split("_")[2])
+                        else:
+                            game_key = str(filename.split("_")[1])
+
+                        dict, index = UserBenchmarkAPI.__get_fps_in_game_data(json_data, 
+                                                                              settings_item["Combination"], 
+                                                                              settings_item["Resolution"],
+                                                                              settings_item["GameSettings"],
+                                                                              game_key, 
+                                                                              index)
+                        data.update(dict)
+                    except json.JSONDecodeError as e:
+                        print(f"Ошибка при чтении файла {file_path}: {e}")
+
+        return data
 
     def get_all_fps_data():
-        pass
+        all_fps_data = []
+        
+        current_directory = os.getcwd()
+        folder_path = current_directory + "\\data\\userbenchmark\\fps_in_games\\"
+
+        for name_folder in os.listdir(folder_path):
+            data = UserBenchmarkAPI.get_fps_in_games_folder(name_folder)
+            values_list = list(data.values())
+            all_fps_data = all_fps_data + values_list
+        
+        return all_fps_data

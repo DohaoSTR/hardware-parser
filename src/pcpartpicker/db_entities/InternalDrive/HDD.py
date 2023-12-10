@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class HDD(Base):
-    __tablename__ = 'pcpartpicker_hdd'
+    __tablename__ = 'hdd'
 
     id = Column(Integer, primary_key=True)
     capacity = Column(Float)
@@ -19,5 +19,5 @@ class HDD(Base):
     power_loss_protection = Column(String(10))
     spindle_speed = Column(Float)
     
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'), nullable=False, unique=True)
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'), nullable=False, unique=True)
+    part = relationship("PartEntity")

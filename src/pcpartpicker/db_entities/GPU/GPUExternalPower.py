@@ -4,13 +4,12 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class GPUExternalPowerData(Base):
-    __tablename__ = 'pcpartpicker_gpu_external_power_data'
+    __tablename__ = 'gpu_external_power_data'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    gpu_id = Column(Integer, ForeignKey('pcpartpicker_gpu_main_data.id'), nullable=False)
     interface_name = Column(String(250), default=None)
     interface_count = Column(Integer, default=None)
     pin_count = Column(Integer, default=None)
 
-    gpu_id = Column(Integer, ForeignKey('pcpartpicker_gpu_main_data.id'), unique=False, nullable=False)
+    gpu_id = Column(Integer, ForeignKey('gpu_main_data.id'), unique=False, nullable=False)
     gpu = relationship("GPUMainData")

@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class MotherboardMainData(Base):
-    __tablename__ = 'pcpartpicker_motherboard_main_data'
+    __tablename__ = 'motherboard_main_data'
     
     id = Column(Integer, primary_key=True, autoincrement=True) 
     
@@ -22,5 +22,5 @@ class MotherboardMainData(Base):
     wifi_standard = Column(String(250))
     network_adapter_speed = Column(DOUBLE)
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'),  unique=True, nullable=False)
-    part = relationship('PcPartPickerPartEntity')
+    part_id = Column(Integer, ForeignKey('part.id'),  unique=True, nullable=False)
+    part = relationship('PartEntity')

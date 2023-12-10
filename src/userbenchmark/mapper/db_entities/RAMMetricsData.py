@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from ..BaseSQLAlchemy import Base
 
 class RAMMetricsData(Base):
-    __tablename__ = 'memory_metrics_data'
+    __tablename__ = 'ram_metrics_data'
 
     id = Column(Integer, primary_key=True)
     effective_speed = Column(DOUBLE)
@@ -22,5 +22,5 @@ class RAMMetricsData(Base):
     single_core_write_bench = Column(DOUBLE)
     single_core_mixed_io_bench = Column(DOUBLE)
 
-    part_id = Column(Integer, ForeignKey('parts.id'), unique=True, nullable=False)
+    part_id = Column(Integer, ForeignKey('parts.id'), nullable=False)
     part = relationship("PartEntity")

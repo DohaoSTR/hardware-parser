@@ -22,5 +22,5 @@ class GPUMetricsData(Base):
     avg_parallax_occlusion_mapping = Column(DOUBLE)
     avg_force_splatted_flocking = Column(DOUBLE)
 
-    part_id = Column(Integer, ForeignKey('parts.id'), unique=True, nullable=False)
+    part_id = Column(Integer, ForeignKey('parts.id'), nullable=False)
     part = relationship("PartEntity")

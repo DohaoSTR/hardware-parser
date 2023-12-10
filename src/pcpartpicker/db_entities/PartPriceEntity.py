@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 
 from ..BaseSQLAlchemy import Base
 
-class PcPartPickerPartPriceEntity(Base):
-    __tablename__ = 'pcpartpicker_price_data'
+class PriceEntity(Base):
+    __tablename__ = 'price_data'
 
     id = Column(Integer, primary_key=True)
     merchant_link = Column(String)
@@ -18,6 +18,6 @@ class PcPartPickerPartPriceEntity(Base):
     final_price = Column(Float)
     currency = Column(String)
     last_update_time = Column(DateTime)
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'))
 
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'))
+    part = relationship("PartEntity")

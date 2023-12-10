@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class CaseFanData(Base):
-    __tablename__ = 'pcpartpicker_case_fan'
+    __tablename__ = 'case_fan'
 
     id = Column(Integer, primary_key=True)
     model = Column(String(250))
@@ -24,5 +24,5 @@ class CaseFanData(Base):
     min_noise_level = Column(DOUBLE)
     max_noise_level = Column(DOUBLE)
     
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'), unique=True)
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True)
+    part = relationship("PartEntity")

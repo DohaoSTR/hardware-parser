@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class SSD(Base):
-    __tablename__ = 'pcpartpicker_ssd'
+    __tablename__ = 'ssd'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     capacity = Column(Float)
@@ -21,5 +21,5 @@ class SSD(Base):
     ssd_nand_flash_type = Column(String(250))
     ssd_controller = Column(String(250))
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'), nullable=False, unique=True)
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'), nullable=False, unique=True)
+    part = relationship("PartEntity")

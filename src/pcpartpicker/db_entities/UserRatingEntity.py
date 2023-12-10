@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 
 from ..BaseSQLAlchemy import Base
 
-class PcPartPickerUserRatingEntity(Base):
-    __tablename__ = 'pcpartpicker_user_rating'
+class UserRatingEntity(Base):
+    __tablename__ = 'user_rating'
     
     id = Column(Integer, primary_key=True)
     ratings_count = Column(Integer)
@@ -16,6 +16,5 @@ class PcPartPickerUserRatingEntity(Base):
     two_star = Column(Integer)
     one_star = Column(Integer)
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'))
-    
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'))
+    part = relationship("PartEntity")

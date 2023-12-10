@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class PowerSupplyConnectors(Base):
-    __tablename__ = 'pcpartpicker_power_supply_connectors'
+    __tablename__ = 'power_supply_connectors'
 
     id = Column(Integer, primary_key=True)
     atx_4pin_connectors = Column(Integer)
@@ -17,5 +17,5 @@ class PowerSupplyConnectors(Base):
     sata_connectors = Column(Integer)
     molex_4pin_connectors = Column(Integer)
 
-    power_supply_id = Column(Integer, ForeignKey('pcpartpicker_power_supply.id'), unique=True)
+    power_supply_id = Column(Integer, ForeignKey('power_supply.id'), unique=True)
     power_supply = relationship("PowerSupplyData")

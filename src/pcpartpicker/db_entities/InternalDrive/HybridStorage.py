@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class HybridStorage(Base):
-    __tablename__ = 'pcpartpicker_hybrid_storage'
+    __tablename__ = 'hybrid_storage'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     capacity = Column(Float)
@@ -20,5 +20,5 @@ class HybridStorage(Base):
     model = Column(String(250))
     power_loss_protection = Column(String(10))
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'), nullable=False, unique=True)
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'), nullable=False, unique=True)
+    part = relationship("PartEntity")

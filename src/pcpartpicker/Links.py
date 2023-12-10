@@ -1,4 +1,4 @@
-from .PcPartPickerPart import PcPartPickerPart
+from .Part import Part
 
 from ..cloudflare_bypass.CloudflareTorDriver import CloudflareTorDriver
 
@@ -21,7 +21,7 @@ HTML_PRODUCT_PAGE_WAIT = 5
 LINKS_RELATIVE_PATH = "\\data\\pcpartpicker\\links\\"
 
 # класс для получения ссылок комплектующих с сайта PcPartPicker
-class PcPartPickerLinks:
+class Links:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -91,11 +91,11 @@ class PcPartPickerLinks:
         self.web_driver = None
 
     # получение ссылок для одной категории комплектующих
-    def get_links_of_part(self, part: PcPartPickerPart):
+    def get_links_of_part(self, part: Part):
         link_without_page = "https://pcpartpicker.com/products/" + part.value + "/"
         links = []
 
-        for page_number in range(1, PcPartPickerPart.get_pages_count(part.value) + 1):
+        for page_number in range(1, Part.get_pages_count(part.value) + 1):
             while True:
                 link = link_without_page + "#page=" + str(page_number)
 
@@ -136,7 +136,7 @@ class PcPartPickerLinks:
         return links
 
     # сохранение ссылок в json файла
-    def save_links_to_json(part: PcPartPickerPart, links):
+    def save_links_to_json(part: Part, links):
         current_directory = os.getcwd()
         file_path = current_directory + LINKS_RELATIVE_PATH + str(part.value) + "_links.json"
 
@@ -144,7 +144,7 @@ class PcPartPickerLinks:
             json.dump(links, json_file, indent=4, ensure_ascii=False)
 
     # получение ссылок из json файла
-    def get_links_from_json(part: PcPartPickerPart):
+    def get_links_from_json(part: Part):
         current_directory = os.getcwd()
         file_path = current_directory + LINKS_RELATIVE_PATH + str(part.value) + "_links.json"
         
@@ -155,6 +155,6 @@ class PcPartPickerLinks:
     
     # получение ссылок для всех категорий комплектующих
     def get_all_links(self):
-        for part in PcPartPickerPart:
+        for part in Part:
             links = self.get_links_of_part(part)
-            PcPartPickerLinks.save_links_to_json(part, links)
+            Links.save_links_to_json(part, links)

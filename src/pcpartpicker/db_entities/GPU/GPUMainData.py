@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class GPUMainData(Base):
-    __tablename__ = 'pcpartpicker_gpu_main_data'
+    __tablename__ = 'gpu_main_data'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     model = Column(String(250), default=None)
@@ -20,5 +20,5 @@ class GPUMainData(Base):
     radiator_mm = Column(Integer, default=None)
     fans_count = Column(Integer, default=None)
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'), unique=True, nullable=False)
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True, nullable=False)
+    part = relationship("PartEntity")

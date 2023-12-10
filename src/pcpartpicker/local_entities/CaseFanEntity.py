@@ -9,7 +9,7 @@ from ..db_entities.CaseFan.CaseFanConnector import CaseFanConnector
 from ..db_entities.CaseFan.CaseFanFeatures import CaseFanFeatures
 
 @dataclass
-class PcPartPickerCaseFanEntity(BaseEntity):
+class CaseFanEntity(BaseEntity):
     model: str = None
     size: float = None
     color: str = None

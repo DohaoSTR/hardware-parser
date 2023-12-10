@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 
 from ...BaseSQLAlchemy import Base
 
-class PcPartPickerCPUCoreEntity(Base):
-    __tablename__ = 'pcpartpicker_cpu_core'
+class CPUCoreEntity(Base):
+    __tablename__ = 'cpu_core'
     
     id = Column(Integer, primary_key=True)
 
@@ -18,6 +18,5 @@ class PcPartPickerCPUCoreEntity(Base):
     integrated_graphics = Column(String)
     simultaneous_multithreading = Column(String)
 
-    cpu_id = Column(Integer, ForeignKey('pcpartpicker_cpu_main_data.id'))
-    
-    cpu = relationship("PcPartPickerCPUMainDataEntity")
+    cpu_id = Column(Integer, ForeignKey('cpu_main_data.id'))
+    cpu = relationship("CPUMainDataEntity")

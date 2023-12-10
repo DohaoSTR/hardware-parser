@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 
 from ...BaseSQLAlchemy import Base
 
-class PcPartPickerCPUMainDataEntity(Base):
-    __tablename__ = 'pcpartpicker_cpu_main_data'
+class CPUMainDataEntity(Base):
+    __tablename__ = 'cpu_main_data'
     
     id = Column(Integer, primary_key=True)
 
@@ -16,6 +16,5 @@ class PcPartPickerCPUMainDataEntity(Base):
     packaging = Column(String)
     model = Column(String)
 
-    part_id = Column(Integer, ForeignKey('pcpartpicker_part.id'))
-    
-    part = relationship("PcPartPickerPartEntity")
+    part_id = Column(Integer, ForeignKey('part.id'))
+    part = relationship("PartEntity")

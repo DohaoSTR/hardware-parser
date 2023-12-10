@@ -1,6 +1,6 @@
 import logging
 
-from src.pcpartpicker.PcPartPickerParameters import PcPartPickerParameters
+from src.pcpartpicker.Parameters import Parameters
 
 LOG_PATH = "data\\pcpartpicker\\logs\\pcpartpicker_parser.log"
 
@@ -15,6 +15,6 @@ if __name__ == "__main__":
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    parser = PcPartPickerParameters(logger)
+    parser = Parameters(logger)
     with parser:
         parser.get_all_pages_data()

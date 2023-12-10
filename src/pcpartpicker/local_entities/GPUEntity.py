@@ -17,7 +17,7 @@ class PowerInterface:
         self.pin_count = pin_count
 
 @dataclass
-class PcPartPickerGPUEntity(BaseEntity):
+class GPUEntity(BaseEntity):
     model: str = None
     chipset: str = None
     memory: float = None

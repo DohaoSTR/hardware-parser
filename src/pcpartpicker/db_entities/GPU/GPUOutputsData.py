@@ -4,10 +4,10 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class GPUOutputsData(Base):
-    __tablename__ = 'pcpartpicker_gpu_outputs_data'
+    __tablename__ = 'gpu_outputs_data'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    # Output columns
+
     hdmi_outputs = Column(Integer, default=None)
     displayport_outputs = Column(Integer, default=None)
     hdmi_2_1a_outputs = Column(Integer, default=None)
@@ -37,5 +37,5 @@ class GPUOutputsData(Base):
     displayport_1_3_outputs = Column(Integer, default=None)
     dvi_a_outputs = Column(Integer, default=None)
 
-    gpu_id = Column(Integer, ForeignKey('pcpartpicker_gpu_main_data.id'), unique=True, nullable=False)
+    gpu_id = Column(Integer, ForeignKey('gpu_main_data.id'), unique=True, nullable=False)
     gpu = relationship("GPUMainData")

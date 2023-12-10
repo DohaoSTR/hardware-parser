@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 
-from ..db_entities.CPU.PcPartPickerCPUCacheEntity import PcPartPickerCPUCacheEntity
+from ..db_entities.CPU.CPUCacheEntity import CPUCacheEntity
 from ..db_entities.CPU.CPUCacheType import CPUCacheType
-from ..db_entities.CPU.PcPartPickerCPUCoreEntity import PcPartPickerCPUCoreEntity
-from ..db_entities.CPU.PcPartPickerCPUMainDataEntity import PcPartPickerCPUMainDataEntity
+from ..db_entities.CPU.CPUCoreEntity import CPUCoreEntity
+from ..db_entities.CPU.CPUMainDataEntity import CPUMainDataEntity
 
 from ..BaseEntity import BaseEntity
 
 @dataclass
-class PcPartPickerCPUEntity(BaseEntity):
+class CPUEntity(BaseEntity):
     core_count: int = None
     performance_core_clock: float = None
     performance_boost_clock: float = None
@@ -34,10 +34,10 @@ class PcPartPickerCPUEntity(BaseEntity):
     efficiency_l1_cache: list = None
     efficiency_l2_cache: str = None
 
-    main_data: PcPartPickerCPUMainDataEntity = None
-    cpu_core: PcPartPickerCPUCoreEntity = None
-    perfomance_cache: PcPartPickerCPUCacheEntity = None
-    efficiency_cache: PcPartPickerCPUCacheEntity = None
+    main_data: CPUMainDataEntity = None
+    cpu_core: CPUCoreEntity = None
+    perfomance_cache: CPUCacheEntity = None
+    efficiency_cache: CPUCacheEntity = None
 
     def __populate_cache_entity(self, cache_type: CPUCacheType):
         cache_vars = self.handle_l1_cache(getattr(self, f"{cache_type.value}_l1_cache"))
@@ -48,7 +48,7 @@ class PcPartPickerCPUEntity(BaseEntity):
         else:
             l3_cache_vars = self.handle_l2_l3_cache(getattr(self, f"l3_cache"))
 
-        cache_entity = PcPartPickerCPUCacheEntity(
+        cache_entity = CPUCacheEntity(
             count_lines_l1_instruction=cache_vars[0],
             capacity_l1_instruction=cache_vars[1],
             capacity_measure_l1_instruction=cache_vars[2],
@@ -72,8 +72,8 @@ class PcPartPickerCPUEntity(BaseEntity):
 
         return cache_entity
     
-    def __populate_main_data_entity(cpu_entity) -> PcPartPickerCPUMainDataEntity:
-        db_entity = PcPartPickerCPUMainDataEntity()
+    def __populate_main_data_entity(cpu_entity) -> CPUMainDataEntity:
+        db_entity = CPUMainDataEntity()
 
         for column_name in db_entity.__table__.columns.keys():
             if column_name != "id" and column_name != "part_id":
@@ -81,8 +81,8 @@ class PcPartPickerCPUEntity(BaseEntity):
 
         return db_entity
     
-    def __populate_cpu_core_entity(cpu_entity) -> PcPartPickerCPUCoreEntity:
-        db_entity = PcPartPickerCPUCoreEntity()
+    def __populate_cpu_core_entity(cpu_entity) -> CPUCoreEntity:
+        db_entity = CPUCoreEntity()
 
         for column_name in db_entity.__table__.columns.keys():
             if column_name != "id" and column_name != "cpu_id":

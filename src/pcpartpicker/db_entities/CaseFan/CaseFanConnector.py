@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ...BaseSQLAlchemy import Base
 
 class CaseFanConnector(Base):
-    __tablename__ = 'pcpartpicker_case_fan_connector'
+    __tablename__ = 'case_fan_connector'
 
     id = Column(Integer, primary_key=True)
     pin_count = Column(Integer)
@@ -14,5 +14,5 @@ class CaseFanConnector(Base):
     addressable = Column(String(10))
     pwm = Column(String(10))
     
-    case_fan_id = Column(Integer, ForeignKey('pcpartpicker_case_fan.id'), nullable=False)
+    case_fan_id = Column(Integer, ForeignKey('case_fan.id'), nullable=False)
     case_fan = relationship("CaseFanData")
