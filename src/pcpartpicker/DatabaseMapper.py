@@ -8,7 +8,6 @@ from .db_entities.PartNumberEntity import PartNumberEntity
 from .db_entities.UserRatingEntity import UserRatingEntity
 from .db_entities.PriceEntity import PriceEntity
 
-from .db_entities.CPU.CPUCacheType import CPUCacheType
 from .local_entities.InternalHardDriveEntity import InternalDriveType
 
 from .Part import Part
@@ -293,6 +292,22 @@ class DatabaseMapper:
             self.session.commit()
             return True
         except Exception as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            file_name = exc_traceback.tb_frame.f_globals['__file__']
+            line_number = exc_traceback.tb_lineno
+            traceback_details = {
+                'filename': file_name,
+                'lineno': line_number,
+                'name': exc_traceback.tb_frame.f_code.co_name,
+                'type': exc_type.__name__,
+                'message': str(exc_value),
+                'traceback': traceback.format_exc()
+            }
+            print(f"Ошибка в файле {file_name}, строка {line_number}: {e}")
+            print("Подробности ошибки:")
+            for key, value in traceback_details.items():
+                print(f"{key}: {value}")
+
             self.logger.error(f"Класс PcPartPickerDataBase. Метод add_all_memory_data. Ошибка - {str(e)}")
             return False
     

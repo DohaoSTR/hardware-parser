@@ -10,6 +10,9 @@ from src.pcpartpicker.db_entities.GPU.GPUMainData import GPUMainData
 from src.pcpartpicker.db_entities.GPU.GPUMultiInterface import GPUMultiInterfaceData
 from src.pcpartpicker.db_entities.GPU.GPUOutputsData import GPUOutputsData
 
+from src.pcpartpicker.db_entities.Memory.MemoryMainData import MemoryMainData
+from src.pcpartpicker.db_entities.Memory.MemoryCharacteristics import MemoryCharacteristics
+
 from src.pcpartpicker.db_entities.Motherboard.MotherboardConnectData import MotherboardConnectData
 from src.pcpartpicker.db_entities.Motherboard.MotherboardEthernet import MotherboardEthernet
 from src.pcpartpicker.db_entities.Motherboard.MotherboardM2Slots import MotherboardM2Slots
