@@ -1,12 +1,12 @@
-from src.userbenchmark.UserBenchmarkPart import UserBenchmarkPart
-from src.userbenchmark.mapper.UserBenchmarkAPI import UserBenchmarkAPI
+from src.userbenchmark.Part import Part
+from src.userbenchmark.mapper.API import API
 
 
-#data = UserBenchmarkAPI.get_resource(UserBenchmarkPart.SSD)
+#data = API.get_resource(Part.SSD)
 #print(data)
 
-#data = UserBenchmarkAPI.get_metrics_of_all_parts()
+#data = API.get_metrics_of_all_parts()
 #print(data)
 
-data = UserBenchmarkAPI.get_data_of_part(UserBenchmarkPart.CPU)
+data = API.get_data_of_part(Part.CPU)
 print(data)

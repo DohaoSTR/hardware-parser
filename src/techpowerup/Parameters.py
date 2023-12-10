@@ -1,5 +1,5 @@
 from .TechpowerupWebDriver import TechpowerupWebDriver
-from .TechpowerupPart import TechpowerupPart
+from .Part import Part
 
 import logging
 from logging import Logger
@@ -13,7 +13,7 @@ import os
 
 GET_PAGE_DATA_MAX_ITERATIONS = 3
 
-class TechpowerupParameters:
+class Parameters:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -37,8 +37,8 @@ class TechpowerupParameters:
         return self
 
     # метод формирующий ссылку на страницу с характеристиками комплектующей
-    def __form_part_link(key, part: TechpowerupPart):
-        return TechpowerupPart.PART_LINK_MAPPING.get(part) + str(key) 
+    def __form_part_link(key, part: Part):
+        return Part.PART_LINK_MAPPING.get(part) + str(key) 
 
     # получение типа комплектующей из ссылки
     def __get_part_from_link(self, link):
@@ -47,17 +47,17 @@ class TechpowerupParameters:
         if len(parts) >= 2:
             last_part = parts[-2].lower()
 
-            for part in TechpowerupPart:
+            for part in Part:
                 if last_part.startswith(part.value):
                     return part
                 
         return None
 
     # метод для получения названия комплектующей с страницы
-    def __get_part_name_from_html(self, html_content, part: TechpowerupPart):
+    def __get_part_name_from_html(self, html_content, part: Part):
         soup = BeautifulSoup(html_content, 'html.parser')
 
-        class_name = TechpowerupPart.PART_CLASS_MAPPING.get(part)
+        class_name = Part.PART_CLASS_MAPPING.get(part)
         if class_name:
             name_element = soup.find('h1', class_=class_name)
             if name_element:
@@ -85,11 +85,11 @@ class TechpowerupParameters:
 
         return main_data, part_type
     
-    def __get_images_data(self, html_content, part_type: TechpowerupPart):
+    def __get_images_data(self, html_content, part_type: Part):
         soup = BeautifulSoup(html_content, 'html.parser')
 
         image_links = []
-        if part_type == TechpowerupPart.GPU:
+        if part_type == Part.GPU:
             large_links = soup.find_all('a', class_='gpudb-large-image__item')
             for link in large_links:
                 image_links.append({ "Name": "LargeImage", "Value": link['href'] })
@@ -105,7 +105,7 @@ class TechpowerupParameters:
                     image_link = link_element['href']
                     
                     image_links.append({ "Name": title, "Value": image_link })
-        elif part_type == TechpowerupPart.CPU:
+        elif part_type == Part.CPU:
             chip_image_elements = soup.find_all('div', class_='chip-image')
             for chip_image_element in chip_image_elements:
                 link_element = chip_image_element.find('a', href=True)
@@ -121,7 +121,7 @@ class TechpowerupParameters:
                 title = title_element.get_text(strip=True)
 
                 image_links.append({'Name': title, 'Value': image_link})
-        elif part_type == TechpowerupPart.SSD:
+        elif part_type == Part.SSD:
             large_links = soup.find_all('a', class_='ssddb-large-image__item')
             for link in large_links:
                 image_links.append({ "Name": "LargeImage", "Value": link['href'] })
@@ -366,7 +366,7 @@ class TechpowerupParameters:
             page_data.append(images_links)
 
             # получение RecommendedGamingResolutions для видеокарт
-            if part_type == TechpowerupPart.GPU:
+            if part_type == Part.GPU:
                 section_data = self.__get_recommended_gaming_resolution_data(html_content)
                 page_data.append(section_data)
 
@@ -398,7 +398,7 @@ class TechpowerupParameters:
                             cards = self.__get_gpudb_relative_performance_data(html_content)
                             section_data.append(cards)
                         else:
-                            if part_type == TechpowerupPart.CPU and header_text == "Features":
+                            if part_type == Part.CPU and header_text == "Features":
                                 features_list = details_section.find('ul', class_='features')
                                 for li in features_list.find_all('li'):
                                     section_data.append({ "Name": "Feature", "Value": li.text })
@@ -430,7 +430,7 @@ class TechpowerupParameters:
                 return section[1:]
 
     # получение параметров комплектующей
-    def get_part_parameters_from_json(part: TechpowerupPart):
+    def get_part_parameters_from_json(part: Part):
         current_file_path = os.path.abspath(__file__)
         file_path = os.path.dirname(current_file_path) + "\\data\\" + str(part.value) + "_parameters.json"
         
@@ -445,8 +445,8 @@ class TechpowerupParameters:
         return data
     
     # сохранение параметров комплеткующей
-    def save_part_parameters_to_json(part: TechpowerupPart, data):
-        part_parameters = TechpowerupParameters.get_part_parameters_from_json(part)
+    def save_part_parameters_to_json(part: Part, data):
+        part_parameters = Part.get_part_parameters_from_json(part)
 
         if part_parameters == {} or len(part_parameters) == 0 or part_parameters == None:
             existing_data = {}
@@ -464,8 +464,8 @@ class TechpowerupParameters:
             json_file.close()
 
     # метод получения последнего ключа из json файла с данными комплектующей
-    def get_last_key_of_part(part: TechpowerupPart):
-        part_data = TechpowerupParameters.get_part_parameters_from_json(part)
+    def get_last_key_of_part(part: Part):
+        part_data = Parameters.get_part_parameters_from_json(part)
 
         if part_data == {}:
             last_key = 0
@@ -477,9 +477,9 @@ class TechpowerupParameters:
     
     # проверка на то запаршена ли комплектующая
     # не совсем так работает
-    def is_all_parsed(part: TechpowerupPart):
-        last_key = TechpowerupParameters.get_last_key_of_part(part)
-        pages_count = TechpowerupPart.PART_PAGES_COUNT_MAPPING.get(part)
+    def is_all_parsed(part: Part):
+        last_key = Parameters.get_last_key_of_part(part)
+        pages_count = Part.PART_PAGES_COUNT_MAPPING.get(part)
 
         if int(last_key) + 1 == pages_count:
             return True
@@ -487,11 +487,11 @@ class TechpowerupParameters:
             return False
         
     # метод для получения данных о комплектующих конкретного типа
-    def get_part_data(self, part: TechpowerupPart, start_index: int = 0):
+    def get_part_data(self, part: Part, start_index: int = 0):
         pages_data = {}
 
-        for key in range(start_index + 1, TechpowerupPart.PART_PAGES_COUNT_MAPPING.get(part) + 1):
-            link = TechpowerupParameters.__form_part_link(key, part)
+        for key in range(start_index + 1, Part.PART_PAGES_COUNT_MAPPING.get(part) + 1):
+            link = Parameters.__form_part_link(key, part)
 
             page_data = self.get_page_data(link)
             if(page_data == None):
@@ -501,23 +501,23 @@ class TechpowerupParameters:
 
             pages_data[key] = page_data
 
-            self.logger.info(f"{key}. data - {TechpowerupParameters.__get_header_from_page_data(page_data)}")
+            self.logger.info(f"{key}. data - {Parameters.__get_header_from_page_data(page_data)}")
             self.logger.info(f"link - {link}")
 
             if key % 100 == 0:
-                TechpowerupParameters.save_part_parameters_to_json(part, pages_data)
+                Parameters.save_part_parameters_to_json(part, pages_data)
 
-        TechpowerupParameters.save_part_parameters_to_json(part, pages_data)
+        Parameters.save_part_parameters_to_json(part, pages_data)
         return pages_data
 
     # метод для получения данных о всех комплектующих
     def get_all_part_data(self):
-        for part in TechpowerupPart:
-            if TechpowerupParameters.is_all_parsed(part) == True:
+        for part in Part:
+            if Parameters.is_all_parsed(part) == True:
                 self.logger.info(f"Part: {part.value}. Все данные получены.")
                 continue
             else:
-                last_key = TechpowerupParameters.get_last_key_of_part(part)
+                last_key = Parameters.get_last_key_of_part(part)
 
                 self.logger.info(f"Part: {part.value}. LastKey: {last_key}.")
 
@@ -539,5 +539,5 @@ if __name__ == "__main__":
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    parser = TechpowerupParameters(logger)
+    parser = Parameters(logger)
     parser.get_all_part_data()

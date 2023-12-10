@@ -6,7 +6,7 @@ from .db_entities.ImageDataEntity import ImageDataEntity
 from .db_entities.PartEntity import PartEntity
 from .db_entities.PartNumberEntity import PartNumberEntity
 from .db_entities.UserRatingEntity import UserRatingEntity
-from .db_entities.PartPriceEntity import PartPriceEntity
+from .db_entities.PriceEntity import PriceEntity
 
 from .db_entities.CPU.CPUCacheType import CPUCacheType
 from .local_entities.InternalHardDriveEntity import InternalDriveType
@@ -55,7 +55,7 @@ class DatabaseMapper:
     #
     def add_all_parts_main_data(self):
         try:
-            parts_entities = API.get_main_data_of_all_parts()
+            parts_entities = API.get_part_entities_of_all_parts()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
@@ -94,18 +94,21 @@ class DatabaseMapper:
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
-            none_count = 0
             for key, ratings_count, average_rating, five_star, four_star, three_star, two_star, one_star in user_rating_data:
                 part = self.session.query(PartEntity).filter_by(key=key).first()
                 
                 params = [ratings_count, average_rating, five_star, four_star, three_star, two_star, one_star]
                 if all(p is not None for p in params):
-                    user_rating = UserRatingEntity(ratings_count=ratings_count, average_rating=average_rating, five_star=five_star, four_star=four_star, three_star=three_star,two_star=two_star,one_star=one_star, part=part) 
+                    user_rating = UserRatingEntity(ratings_count=ratings_count, 
+                                                   average_rating=average_rating, 
+                                                   five_star=five_star, 
+                                                   four_star=four_star, 
+                                                   three_star=three_star,
+                                                   two_star=two_star,
+                                                   one_star=one_star, 
+                                                   part=part) 
                     self.session.add(user_rating)
-                else:
-                    none_count += 1
             
-            print(none_count)
             self.session.commit()
             return True
         except Exception as e:
@@ -119,21 +122,17 @@ class DatabaseMapper:
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
-            none_count = 0
             for key, merchant_link, merchant_name, base_price, promo_value, shipping_text, shipping_link, tax_value, availability, final_price, currency, last_update_time in price_data:
                 part = self.session.query(PartEntity).filter_by(key=key).first()
                 
                 params = [merchant_link, merchant_name, base_price, promo_value, shipping_text, shipping_link, tax_value, availability, final_price, last_update_time]
                 if any(p is not None for p in params):
-                    price_entity = PartPriceEntity(merchant_link=merchant_link, merchant_name=merchant_name, base_price=base_price, 
+                    price_entity = PriceEntity(merchant_link=merchant_link, merchant_name=merchant_name, base_price=base_price, 
                                                               promo_value=promo_value, shipping_text=shipping_text,shipping_link=shipping_link,
                                                               tax_value=tax_value, availability=availability, final_price=final_price, currency=currency,
                                                               last_update_time=last_update_time, part=part) 
                     self.session.add(price_entity)
-                else:
-                    none_count += 1
             
-            print(none_count)
             self.session.commit()
             return True
         except Exception as e:

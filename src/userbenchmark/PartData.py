@@ -1,7 +1,7 @@
-from .UserBenchmarkCompareKeys import UserBenchmarkCompareKeys
+from .CompareKeys import CompareKeys
 from .UserBenchmarkRequest import UserBecnhmarkRequest
-from .UserBenchmarkPart import UserBenchmarkPart
-from .UserBenchmarkCompareKeyType import UserBenchmarkCompareKeyType
+from .Part import Part
+from .CompareKeyType import CompareKeyType
 
 from ..misc import custom_float
 
@@ -22,7 +22,7 @@ VALUE_SENTIMENT_TABLE_ID = 'pricesenttable'
 NICE_TO_HAVES_TABLE_ID = 'secondarytable'
 
 # класс для парсинга данных комплектующих с сайта UserBenchmark
-class UserBenchmarkPartData:
+class PartData:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -112,17 +112,17 @@ class UserBenchmarkPartData:
         return data
     
     # метод для формирования compare ссылки
-    def __form_compare_link(self, part: UserBenchmarkPart, key_type: UserBenchmarkCompareKeyType, key):
+    def __form_compare_link(self, part: Part, key_type: CompareKeyType, key):
         link = None
 
-        if key_type is UserBenchmarkCompareKeyType.WithM:
+        if key_type is CompareKeyType.WithM:
             link = "https://" + part.value + ".userbenchmark.com/Compare/vs-Group-/m" + key + "vs10"
-        elif key_type is UserBenchmarkCompareKeyType.WithoutM:
+        elif key_type is CompareKeyType.WithoutM:
             link = "https://" + part.value + ".userbenchmark.com/Compare/vs-Group-/" + key + "vs10"
 
         return link
 
-    def get_part_data_from_json(part: UserBenchmarkPart):
+    def get_part_data_from_json(part: Part):
         current_directory = os.getcwd()
         file_path = current_directory + "\\data\\userbenchmark\\part_data\\" + part.value + "_data.json"
         with open(file_path, 'r') as json_file:
@@ -130,7 +130,7 @@ class UserBenchmarkPartData:
             
         return part_data
       
-    def save_part_data_to_json(part: UserBenchmarkPart, data):
+    def save_part_data_to_json(part: Part, data):
         current_directory = os.getcwd()
         save_directory = current_directory + "\\data\\userbenchmark\\part_data\\"
         filename = part.value + "_data"
@@ -139,7 +139,7 @@ class UserBenchmarkPartData:
             json.dump(data, json_file, indent=4, ensure_ascii=False)
 
     # получение данных комплектующих для одной категории
-    def get_part_data(self, compare_keys, part: UserBenchmarkPart):
+    def get_part_data(self, compare_keys, part: Part):
         data = {}
 
         index = 0
@@ -147,7 +147,7 @@ class UserBenchmarkPartData:
             compare_type_str = value['type']
             compare_key_type = None
             try:
-                compare_key_type = UserBenchmarkCompareKeyType(compare_type_str)
+                compare_key_type = CompareKeyType(compare_type_str)
             except ValueError:
                 self.logger.info(f"Произошла ошибка при получении compare_key_type. Key - {key}")
                 break
@@ -188,16 +188,16 @@ class UserBenchmarkPartData:
 
             index = index + 1
             if index % 100 == 0:
-                UserBenchmarkPartData.save_part_data_to_json(part, data)
+                PartData.save_part_data_to_json(part, data)
         
         return data
 
     def get_all_parts_data(self):
-        for part in UserBenchmarkPart:
-            compare_keys = UserBenchmarkCompareKeys.get_compare_keys_from_json(part)
+        for part in Part:
+            compare_keys = CompareKeys.get_compare_keys_from_json(part)
 
             data = self.get_part_data(compare_keys, part)
-            UserBenchmarkPartData.save_part_data_to_json(part, data)
+            PartData.save_part_data_to_json(part, data)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO,
@@ -210,5 +210,5 @@ if __name__ == "__main__":
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    parser = UserBenchmarkPartData(logger)
+    parser = PartData(logger)
     parser.get_all_parts_data()

@@ -1,6 +1,6 @@
 from enum import Enum
 
-class UserBenchmarkPart(Enum):
+class Part(Enum):
     CPU = "cpu"
     GPU = "gpu"
     RAM = "ram"

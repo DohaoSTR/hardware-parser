@@ -1,6 +1,6 @@
 import logging
 
-from src.userbenchmark.UserBenchmarkPartKeys import UserBenchmarkPartKeys
+from src.userbenchmark.PartKeys import PartKeys
 
 LOG_PATH = "data\\userbenchmark\\logs\\keys_main.log"
 
@@ -14,5 +14,5 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-parser = UserBenchmarkPartKeys(logger)
+parser = PartKeys(logger)
 parser.get_all_part_keys()

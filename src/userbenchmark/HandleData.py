@@ -1,20 +1,21 @@
-from .UserBenchmarkPart import UserBenchmarkPart
-from .UserBenchmarkPartMetrics import UserBenchmarkPartMetrics
-from .UserBenchmarkAsyncFPSData import UserBenchmarkAsyncFPSData
-from .UserBenchmarkGameKeys import UserBenchmarkGameKeys
-from .UserBenchmarkPartKeys import UserBenchmarkPartKeys
+from .Part import Part
+from .PartMetrics import PartMetrics
+from .AsyncFPSData import AsyncFPSData
+from .GameKeys import GameKeys
+from .PartKeys import PartKeys
+from .KeysHandling import KeysHandling
 
 # получение всех игровых ключей
 def get_game_keys(games_value):
-    game_keys = UserBenchmarkGameKeys.get_game_keys_from_json()
+    game_keys = GameKeys.get_game_keys_from_json()
     game_keys_list = list(game_keys.keys())
     games = game_keys_list[:games_value]
     
     return games
 
 # удаление повторений из ключей
-def remove_duplicates_part_keys(part: UserBenchmarkPart):
-    data = UserBenchmarkPartKeys.get_part_keys_from_json(part)
+def remove_duplicates_part_keys(part: Part):
+    data = PartKeys.get_part_keys_from_json(part)
 
     unique_keys = {}
     handled_data = {}
@@ -29,7 +30,7 @@ def remove_duplicates_part_keys(part: UserBenchmarkPart):
 
 # удаление всех ключей из папки где, количество samples низкое
 # переделать так чтобы еще сохранялась model и был тот же формат
-def remove_keys_with_small_sum(fps_data, part: UserBenchmarkPart, min_samples_sum):
+def remove_keys_with_small_sum(fps_data, part: Part, min_samples_sum):
     sum_samples = {}
     key_name = part.value + "_key"
 
@@ -47,9 +48,9 @@ def remove_keys_with_small_sum(fps_data, part: UserBenchmarkPart, min_samples_su
     return sum_samples
 
 # сохранение отфильтрованных ключей
-def get_handled_data(part: UserBenchmarkPart):
+def get_handled_data(part: Part):
     name_folder = part.value + "_0_0"
-    fps_data = UserBenchmarkAsyncFPSData.get_fps_in_games_data(name_folder)
+    fps_data = AsyncFPSData.get_fps_in_games_data(name_folder)
     sum_samples = remove_keys_with_small_sum(fps_data, part, 200)
     handled_data = remove_duplicates_part_keys(part)
     filtered_data = {key: value for key, value in handled_data.items() if int(value['key']) in sum_samples}
@@ -58,8 +59,8 @@ def get_handled_data(part: UserBenchmarkPart):
 
 # проверка на полное соответствие названий метрик
 def check_compability_names():
-    for part in UserBenchmarkPart:
-        data = UserBenchmarkPartMetrics.get_metric_names_from_json(part)
+    for part in Part:
+        data = PartMetrics.get_metric_names_from_json(part)
         last_inner_key = None
         for key, value in data.items():
             for inner_key, inner_value in value.items():
@@ -73,17 +74,14 @@ def check_compability_names():
 
 
 if __name__ == "__main__":
-    #for part in UserBenchmarkPart:      
-    #    data = remove_duplicates_part_keys(part)
-    #    UserBenchmarkKeysHandling.save_part_keys_without_duplicates_to_json(part, data)
+    for part in Part:      
+       data = remove_duplicates_part_keys(part)
+       KeysHandling.save_part_keys_without_duplicates_to_json(part, data)
 
-    #handled_data =  get_handled_data(UserBenchmarkPart.CPU)
-    #UserBenchmarkKeysHandling.save_handled_fps_keys_to_json(UserBenchmarkPart.CPU, handled_data)
+    handled_data =  get_handled_data(Part.CPU)
+    KeysHandling.save_handled_fps_keys_to_json(Part.CPU, handled_data)
 
-    #handled_data =  get_handled_data(UserBenchmarkPart.GPU)
-    #UserBenchmarkKeysHandling.save_handled_fps_keys_to_json(UserBenchmarkPart.GPU, handled_data)
+    handled_data =  get_handled_data(Part.GPU)
+    KeysHandling.save_handled_fps_keys_to_json(Part.GPU, handled_data)
 
-    #check_compability_names()
-
-    data = UserBenchmarkAsyncFPSData.get_all_fps_data()
-    print(len(data))
+    check_compability_names()

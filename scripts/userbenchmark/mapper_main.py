@@ -1,4 +1,4 @@
-from src.userbenchmark.mapper.UserBenchmarkToDBMapper import UserBenchmarkToDBMapper
+from src.userbenchmark.mapper.DatabaseMapper import DatabaseMapper
 
 import logging
 
@@ -14,5 +14,5 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-mapper = UserBenchmarkToDBMapper(logger)
+mapper = DatabaseMapper(logger)
 mapper.add_unadded_fps_data()

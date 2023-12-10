@@ -4,19 +4,19 @@ import json
 import os
 from typing import List
 
-from src.userbenchmark.UserBenchmarkGameKeys import UserBenchmarkGameKeys
-from src.userbenchmark.UserBenchmarkPart import UserBenchmarkPart
-from src.userbenchmark.UserBenchmarkPartMetrics import UserBenchmarkPartMetrics
-from src.userbenchmark.UserBenchmarkPartKeys import UserBenchmarkPartKeys
-from src.userbenchmark.UserBenchmarkPartData import UserBenchmarkPartData
-from src.userbenchmark.UserBenchmarkAsyncFPSData import UserBenchmarkAsyncFPSData
+from src.userbenchmark.GameKeys import GameKeys
+from src.userbenchmark.Part import Part
+from src.userbenchmark.PartMetrics import PartMetrics
+from src.userbenchmark.PartKeys import PartKeys
+from src.userbenchmark.PartData import PartData
+from src.userbenchmark.AsyncFPSData import AsyncFPSData
 
-from src.userbenchmark.UserBenchmarkResolution import UserBenchmarkResolution
-from src.userbenchmark.UserBenchmarkFPSCombination import UserBenchmarkFPSCombination
-from src.userbenchmark.UserBenchmarkGameSettings import UserBenchmarkGameSettings
+from src.userbenchmark.Resolution import Resolution
+from src.userbenchmark.FPSCombination import FPSCombination
+from src.userbenchmark.GameSettings import GameSettings
 
-from src.userbenchmark.UserBenchmarkCompareKeys import UserBenchmarkCompareKeys
-from src.userbenchmark.UserBenchmarkKeysHandling import UserBenchmarkKeysHandling
+from src.userbenchmark.CompareKeys import CompareKeys
+from src.userbenchmark.KeysHandling import KeysHandling
 
 from .local_entities.CPU import CPU
 from .local_entities.GPU import GPU
@@ -31,8 +31,8 @@ from .db_entities.Metric import Metric
 SUMMARY_DATA_RELATIVE_PATH = "\\data\\userbenchmark\\summary_data\\"
 PARAMETERS_MAPPING_RELATIVE_PATH = "\\data\\userbenchmark\\parameters_mapping\\"
 
-class UserBenchmarkAPI:
-    def get_resource(part: UserBenchmarkPart) -> List[PartEntity]:
+class API:
+    def get_resource(part: Part) -> List[PartEntity]:
         current_directory = os.getcwd()
         csv_link = current_directory + "\\data\\userbenchmark\\resources\\" + part.value + "_UserBenchmarks.csv"
 
@@ -82,8 +82,8 @@ class UserBenchmarkAPI:
     def get_resources() -> List[PartEntity]:
         data = []
 
-        for part in UserBenchmarkPart:
-            resource_data = UserBenchmarkAPI.get_resource(part)
+        for part in Part:
+            resource_data = API.get_resource(part)
 
             for item in resource_data:
                 data.append(item)
@@ -92,7 +92,7 @@ class UserBenchmarkAPI:
 
     #
     def get_game_keys() -> dict:
-        game_keys = UserBenchmarkGameKeys.get_game_keys_from_json()
+        game_keys = GameKeys.get_game_keys_from_json()
 
         data = []
         for key, value in game_keys.items():
@@ -101,7 +101,7 @@ class UserBenchmarkAPI:
         return data
 
     def get_game_keys_entities():
-        game_keys = UserBenchmarkGameKeys.get_game_keys_from_json()
+        game_keys = GameKeys.get_game_keys_from_json()
 
         data = []
         for key, value in game_keys.items():
@@ -111,8 +111,8 @@ class UserBenchmarkAPI:
     #
 
     #
-    def get_metrics_of_part(part: UserBenchmarkPart):
-        metrics_data = UserBenchmarkPartMetrics.get_metric_values_from_json(part)
+    def get_metrics_of_part(part: Part):
+        metrics_data = PartMetrics.get_metric_values_from_json(part)
 
         data = []
         for index, value in metrics_data.items():
@@ -126,8 +126,8 @@ class UserBenchmarkAPI:
     def get_metrics_of_all_parts():
         data = []
 
-        for part in UserBenchmarkPart:
-            metrics_data = UserBenchmarkAPI.get_metrics_of_part(part)
+        for part in Part:
+            metrics_data = API.get_metrics_of_part(part)
 
             for item in metrics_data:
                 data.append(item)
@@ -150,16 +150,16 @@ class UserBenchmarkAPI:
         return pages_data
     
     def __get_entity_class_name(class_name: str):
-        class_names_mapping = UserBenchmarkAPI.__get_part_mapping("class_names")
+        class_names_mapping = API.__get_part_mapping("class_names")
         for key, value in class_names_mapping.items():
             if key == class_name:
                 return value
             
-    def get_data_of_part(part: UserBenchmarkPart):
-        part_data = UserBenchmarkPartData.get_part_data_from_json(part)
-        mapping = UserBenchmarkAPI.__get_part_mapping(part.value)
+    def get_data_of_part(part: Part):
+        part_data = PartData.get_part_data_from_json(part)
+        mapping = API.__get_part_mapping(part.value)
 
-        metrics_class_name = UserBenchmarkAPI.__get_entity_class_name(part.value)
+        metrics_class_name = API.__get_entity_class_name(part.value)
         class_instance = globals()[metrics_class_name]
 
         data = []
@@ -194,8 +194,8 @@ class UserBenchmarkAPI:
 
 
     #
-    def get_parameters_summary_data_of_part(part: UserBenchmarkPart):
-        part_data = UserBenchmarkPartData.get_part_data_from_json(part)
+    def get_parameters_summary_data_of_part(part: Part):
+        part_data = PartData.get_part_data_from_json(part)
 
         parameters_summary_data = {}
         for index, item_block in part_data.items():
@@ -234,7 +234,7 @@ class UserBenchmarkAPI:
 
         return parameters_summary_data
 
-    def save_parameters_summary_data_of_part_to_json(summary_data, part: UserBenchmarkPart):
+    def save_parameters_summary_data_of_part_to_json(summary_data, part: Part):
         current_directory = os.getcwd()
         file_path = current_directory + SUMMARY_DATA_RELATIVE_PATH + str(part.value) + "_unique_names.json"
 
@@ -242,16 +242,16 @@ class UserBenchmarkAPI:
             json.dump(summary_data, json_file, indent=4, ensure_ascii=False)
 
     def save_all_parameters_summary_data_to_json():
-        for part in UserBenchmarkPart:
-            summary_data = UserBenchmarkAPI.get_parameters_summary_data_of_part(part)
-            UserBenchmarkAPI.save_parameters_summary_data_of_part_to_json(summary_data, part)
+        for part in Part:
+            summary_data = API.get_parameters_summary_data_of_part(part)
+            API.save_parameters_summary_data_of_part_to_json(summary_data, part)
     #
 
 
 
     #
-    def get_keys_of_part(part: UserBenchmarkPart):
-        part_keys = UserBenchmarkPartKeys.get_part_keys_from_json(part)
+    def get_keys_of_part(part: Part):
+        part_keys = PartKeys.get_part_keys_from_json(part)
         data = []
 
         for index, value in part_keys.items():
@@ -263,16 +263,16 @@ class UserBenchmarkAPI:
     def get_keys_of_all_parts():
         data = []
 
-        for part in UserBenchmarkPart:
-            part_keys = UserBenchmarkAPI.get_keys_of_part(part)
+        for part in Part:
+            part_keys = API.get_keys_of_part(part)
 
             for item in part_keys:
                 data.append(item)
 
         return data
 
-    def get_compare_keys_of_part(part: UserBenchmarkPart):
-        compare_keys = UserBenchmarkCompareKeys.get_compare_keys_from_json(part)
+    def get_compare_keys_of_part(part: Part):
+        compare_keys = CompareKeys.get_compare_keys_from_json(part)
         data = []
 
         for index, value in compare_keys.items():
@@ -290,8 +290,8 @@ class UserBenchmarkAPI:
     def get_compare_keys_of_all_parts():
         data = []
 
-        for part in UserBenchmarkPart:
-            compare_keys = UserBenchmarkAPI.get_compare_keys_of_part(part)
+        for part in Part:
+            compare_keys = API.get_compare_keys_of_part(part)
 
             for item in compare_keys:
                 data.append(item)
@@ -302,8 +302,8 @@ class UserBenchmarkAPI:
 
 
     #
-    def get_handled_keys_of_part(part: UserBenchmarkPart):
-        handled_keys = UserBenchmarkKeysHandling.get_handled_part_keys_from_json(part)
+    def get_handled_keys_of_part(part: Part):
+        handled_keys = KeysHandling.get_handled_part_keys_from_json(part)
 
         data = []
 
@@ -316,16 +316,16 @@ class UserBenchmarkAPI:
     def get_handled_keys_of_all_parts():
         data = []
 
-        for part in UserBenchmarkPart:
-            handled_keys = UserBenchmarkAPI.get_handled_keys_of_part(part)
+        for part in Part:
+            handled_keys = API.get_handled_keys_of_part(part)
 
             for item in handled_keys:
                 data.append(item)
 
         return data
 
-    def get_keys_without_duplicates_of_part(part: UserBenchmarkPart):
-        part_keys = UserBenchmarkKeysHandling.get_part_keys_without_duplicates_from_json(part)
+    def get_keys_without_duplicates_of_part(part: Part):
+        part_keys = KeysHandling.get_part_keys_without_duplicates_from_json(part)
 
         data = []
 
@@ -338,8 +338,8 @@ class UserBenchmarkAPI:
     def get_keys_without_duplicates_of_all_parts():
         data = []
 
-        for part in UserBenchmarkPart:
-            part_keys = UserBenchmarkAPI.get_keys_without_duplicates_of_part(part)
+        for part in Part:
+            part_keys = API.get_keys_without_duplicates_of_part(part)
 
             for item in part_keys:
                 data.append(item)
@@ -349,9 +349,9 @@ class UserBenchmarkAPI:
 
     #
     def __get_fps_in_game_data(json_data, 
-                               fps_combination: UserBenchmarkFPSCombination, 
-                               resolution: UserBenchmarkResolution,
-                               game_settings: UserBenchmarkGameSettings,
+                               fps_combination: FPSCombination, 
+                               resolution: Resolution,
+                               game_settings: GameSettings,
                                game_key, 
                                index):
         data = {}
@@ -366,21 +366,21 @@ class UserBenchmarkAPI:
                 elif field == "samples_value":
                     samples_value = value
 
-            if fps_combination is UserBenchmarkFPSCombination.CPU:
+            if fps_combination is FPSCombination.CPU:
                 cpu_key = key
                 gpu_key = 0
-            elif fps_combination is UserBenchmarkFPSCombination.GPU:
+            elif fps_combination is FPSCombination.GPU:
                 cpu_key = 0
                 gpu_key = key
-            elif fps_combination is UserBenchmarkFPSCombination.GPU_CPU:
+            elif fps_combination is FPSCombination.GPU_CPU:
                 for field, value in values.items():
                     if field == "cpu_key":
                         cpu_key = value
                     elif field == "gpu_key":
                         gpu_key = value
 
-            game_settings_value = UserBenchmarkGameSettings.get_database_value(game_settings.value)
-            resolution_value = UserBenchmarkResolution.get_database_value(resolution.value)
+            game_settings_value = GameSettings.get_database_value(game_settings.value)
+            resolution_value = Resolution.get_database_value(resolution.value)
             
             data[index] = {
                 "cpu_key": int(cpu_key),
@@ -402,13 +402,13 @@ class UserBenchmarkAPI:
         resolution = None
         game_settings = None
         if len(elements) == 4:
-            combination = UserBenchmarkFPSCombination.GPU_CPU
-            game_settings = UserBenchmarkGameSettings.get_part_enum(elements[2])
-            resolution = UserBenchmarkResolution.get_part_enum(elements[3])
+            combination = FPSCombination.GPU_CPU
+            game_settings = GameSettings.get_part_enum(elements[2])
+            resolution = Resolution.get_part_enum(elements[3])
         elif len(elements) == 3:
-            combination = UserBenchmarkFPSCombination.get_part_enum(elements[0])
-            game_settings = UserBenchmarkGameSettings.get_part_enum(elements[1])
-            resolution = UserBenchmarkResolution.get_part_enum(elements[2])
+            combination = FPSCombination.get_part_enum(elements[0])
+            game_settings = GameSettings.get_part_enum(elements[1])
+            resolution = Resolution.get_part_enum(elements[2])
 
         return { 
             "Combination": combination,
@@ -420,7 +420,7 @@ class UserBenchmarkAPI:
         current_directory = os.getcwd()
         folder_path = current_directory + "\\data\\userbenchmark\\fps_in_games\\" + name_folder + "\\"
 
-        settings_item = UserBenchmarkAPI.parse_fps_folder_name(name_folder)
+        settings_item = API.parse_fps_folder_name(name_folder)
 
         data = {}
         index = 0
@@ -433,12 +433,12 @@ class UserBenchmarkAPI:
                         json_data = json.load(json_file)
 
                         game_key = None
-                        if settings_item["Combination"] == UserBenchmarkFPSCombination.GPU_CPU:
+                        if settings_item["Combination"] == FPSCombination.GPU_CPU:
                             game_key = str(filename.split("_")[2])
                         else:
                             game_key = str(filename.split("_")[1])
 
-                        dict, index = UserBenchmarkAPI.__get_fps_in_game_data(json_data, 
+                        dict, index = API.__get_fps_in_game_data(json_data, 
                                                                               settings_item["Combination"], 
                                                                               settings_item["Resolution"],
                                                                               settings_item["GameSettings"],
@@ -457,7 +457,7 @@ class UserBenchmarkAPI:
         folder_path = current_directory + "\\data\\userbenchmark\\fps_in_games\\"
 
         for name_folder in os.listdir(folder_path):
-            data = UserBenchmarkAPI.get_fps_in_games_folder(name_folder)
+            data = API.get_fps_in_games_folder(name_folder)
             values_list = list(data.values())
             all_fps_data = all_fps_data + values_list
         

@@ -22,7 +22,7 @@ LINK_LOADING_WAIT = 15
 CHANGE_PAGE_BUTTON_WAIT = 10
 
 # класс для получения названия игр и их ключей
-class UserBenchmarkGameKeys:
+class GameKeys:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class UserBenchmarkGameKeys:
         
                 return web_driver
             except TimeoutException:
-                UserBenchmarkGameKeys.__web_driver_quit(web_driver)
+                GameKeys.__web_driver_quit(web_driver)
                 continue
     
     # метод осуществляющий клик на кнопку
@@ -83,7 +83,7 @@ class UserBenchmarkGameKeys:
             return True
         except TimeoutException:
             self.logger.error(f"TimeoutException обработана в методе get_game_links_from_all_pages.")
-            UserBenchmarkGameKeys.__web_driver_quit(web_driver)
+            GameKeys.__web_driver_quit(web_driver)
 
             return False
 
@@ -95,7 +95,7 @@ class UserBenchmarkGameKeys:
             return self.__pages_button_click(web_driver, more_button_id)
         except TimeoutException:
             self.logger.error(f"TimeoutException обработана в методе get_game_links_from_all_pages.")
-            UserBenchmarkGameKeys.__web_driver_quit(web_driver)
+            GameKeys.__web_driver_quit(web_driver)
 
             return False
     
@@ -107,7 +107,7 @@ class UserBenchmarkGameKeys:
             wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, disabled_li_element_class_name)))
         except TimeoutException:
             self.logger.error(f"TimeoutException обработана в методе __wait_to_page_load.")
-            UserBenchmarkGameKeys.__web_driver_quit(web_driver)
+            GameKeys.__web_driver_quit(web_driver)
 
             return False
         
@@ -122,7 +122,7 @@ class UserBenchmarkGameKeys:
             disabled_li_element = web_driver.find_element(By.CLASS_NAME, 'disabled')
         except TimeoutException:
             self.logger.error(f"TimeoutException обработана в методе __get_pages_count.")
-            UserBenchmarkGameKeys.__web_driver_quit(web_driver)
+            GameKeys.__web_driver_quit(web_driver)
 
             return None
         
@@ -155,11 +155,11 @@ class UserBenchmarkGameKeys:
 
         except TimeoutException:
             self.logger.error(f"TimeoutException обработана в методе __get_game_links_from_page.")
-            UserBenchmarkGameKeys.__web_driver_quit(web_driver)
+            GameKeys.__web_driver_quit(web_driver)
             return []
         except StaleElementReferenceException:
             self.logger.error(f"StaleElementReferenceException обработана в методе __get_game_links_from_page.")
-            UserBenchmarkGameKeys.__web_driver_quit(web_driver)
+            GameKeys.__web_driver_quit(web_driver)
             return []
 
         return links
@@ -176,7 +176,7 @@ class UserBenchmarkGameKeys:
                 return False
         except TimeoutException:
             self.logger.error(f"TimeoutException обработана в методе __next_page_button_click.")
-            UserBenchmarkGameKeys.__web_driver_quit(web_driver)
+            GameKeys.__web_driver_quit(web_driver)
 
             return False
         
@@ -254,7 +254,7 @@ if __name__ == "__main__":
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     file_handler.setFormatter(formatter)
 
-    parser = UserBenchmarkGameKeys(logger)
+    parser = GameKeys(logger)
     with parser:
         game_keys_data = parser.get_game_links_from_all_pages()
-        UserBenchmarkGameKeys.save_game_keys_to_json(game_keys_data)
+        GameKeys.save_game_keys_to_json(game_keys_data)

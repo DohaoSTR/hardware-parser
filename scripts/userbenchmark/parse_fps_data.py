@@ -1,7 +1,7 @@
-from src.userbenchmark.UserBenchmarkResolution import UserBenchmarkResolution
-from src.userbenchmark.UserBenchmarkFPSCombination import UserBenchmarkFPSCombination
-from src.userbenchmark.UserBenchmarkGameSettings import UserBenchmarkGameSettings
-from src.userbenchmark.UserBenchmarkAsyncFPSData import UserBenchmarkAsyncFPSData
+from src.userbenchmark.Resolution import Resolution
+from src.userbenchmark.FPSCombination import FPSCombination
+from src.userbenchmark.GameSettings import GameSettings
+from src.userbenchmark.AsyncFPSData import AsyncFPSData
 
 import logging
 
@@ -17,9 +17,9 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-parser = UserBenchmarkAsyncFPSData(logger)
+parser = AsyncFPSData(logger)
 
-selected_combinations = [UserBenchmarkFPSCombination.CPU, UserBenchmarkFPSCombination.GPU, UserBenchmarkFPSCombination.GPU_CPU]
-selected_game_settings = [UserBenchmarkResolution.NONE, UserBenchmarkGameSettings.LOW,  UserBenchmarkGameSettings.MED, UserBenchmarkGameSettings.HIGH, UserBenchmarkGameSettings.MAX]
-selected_resolutions = [UserBenchmarkResolution.NONE, UserBenchmarkResolution.HD_720p, UserBenchmarkResolution.FULL_HD_1080p, UserBenchmarkResolution.QHD_1440p]
+selected_combinations = [FPSCombination.CPU, FPSCombination.GPU, FPSCombination.GPU_CPU]
+selected_game_settings = [GameSettings.NONE, GameSettings.LOW,  GameSettings.MED, GameSettings.HIGH, GameSettings.MAX]
+selected_resolutions = [Resolution.NONE, Resolution.HD_720p, Resolution.FULL_HD_1080p, Resolution.QHD_1440p]
 parser.auto_parsing(selected_combinations, selected_game_settings, selected_resolutions)

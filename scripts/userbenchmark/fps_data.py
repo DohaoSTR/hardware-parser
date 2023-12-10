@@ -1,4 +1,4 @@
-from src.userbenchmark.mapper.UserBenchmarkAPI import UserBenchmarkAPI
+from src.userbenchmark.mapper.API import API
 
-data = UserBenchmarkAPI.get_all_fps_data()
+data = API.get_all_fps_data()
 print(len(data))

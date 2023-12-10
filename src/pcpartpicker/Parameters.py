@@ -1,5 +1,5 @@
-from .PcPartPickerPart import PcPartPickerPart
-from .PcPartPickerLinks import PcPartPickerLinks
+from .Part import Part
+from .Links import Links
 
 from ..cloudflare_bypass.CloudflareTorDriver import CloudflareTorDriver
 
@@ -24,7 +24,7 @@ HTML_PRODUCT_PAGE_WAIT = 1
 PARAMETERS_RELATIVE_PATH = "\\data\\pcpartpicker\\parameters\\"
 
 # класс для получения ссылок комплектующих с сайта PcPartPicker
-class PcPartPickerParameters:
+class Parameters:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class PcPartPickerParameters:
     # { "Header": Название комплектующей }
     # { "PartType": Тип комплектующей } 
     # { "Link": Ссылка на страницу с данными }
-    def __get_main_data(self, html: str, link, part: PcPartPickerPart):
+    def __get_main_data(self, html: str, link, part: Part):
         name_data = []
 
         name_data.append({ "Header": "Main" })
@@ -313,7 +313,7 @@ class PcPartPickerParameters:
         self.web_driver = None
 
     # получение данных с страницы комплектующих
-    def get_data_from_page(self, link, part: PcPartPickerPart):
+    def get_data_from_page(self, link, part: Part):
         page_data = []
         while True:
             if self.web_driver == None:
@@ -378,7 +378,7 @@ class PcPartPickerParameters:
                 return page_data
 
     # получение данных о комплектующих из json
-    def get_pages_data_from_json(part: PcPartPickerPart):
+    def get_pages_data_from_json(part: Part):
         current_directory = os.getcwd()
         file_path = current_directory + PARAMETERS_RELATIVE_PATH + str(part.value) + "_parameters.json"
         
@@ -392,8 +392,8 @@ class PcPartPickerParameters:
         return pages_data
     
     # сохранение данных о комплектующих в json
-    def save_pages_data_to_json(part: PcPartPickerPart, data: dict):
-        pages_data = PcPartPickerParameters.get_pages_data_from_json(part)
+    def save_pages_data_to_json(part: Part, data: dict):
+        pages_data = Parameters.get_pages_data_from_json(part)
 
         if pages_data == {} or len(pages_data) == 0 or pages_data == None:
             existing_data = {}
@@ -410,8 +410,8 @@ class PcPartPickerParameters:
             json_file.close()
 
     # получение данных о комплектующих конкретной категории
-    def get_part_data(self, part: PcPartPickerPart, start_index: int = 0):
-        links = PcPartPickerLinks.get_links_from_json(part)
+    def get_part_data(self, part: Part, start_index: int = 0):
+        links = Links.get_links_from_json(part)
 
         part_data = {}
         for index in range(start_index, len(links)):
@@ -421,15 +421,15 @@ class PcPartPickerParameters:
             self.logger.info(f"{index}. Получены данные с страницы - Link: {links[index]}.")
 
             if index % 100 == 0:
-                PcPartPickerParameters.save_pages_data_to_json(part, part_data)
+                Parameters.save_pages_data_to_json(part, part_data)
                 part_data = {}
 
-        PcPartPickerParameters.save_pages_data_to_json(part, part_data)
+        Parameters.save_pages_data_to_json(part, part_data)
         return part_data
     
     # метод получения последнего ключа из json файла с данными комплектующей
-    def get_last_key_of_part(part: PcPartPickerPart):
-        part_data = PcPartPickerParameters.get_pages_data_from_json(part)
+    def get_last_key_of_part(part: Part):
+        part_data = Parameters.get_pages_data_from_json(part)
         
         if part_data == {}:
             last_key = 0
@@ -440,9 +440,9 @@ class PcPartPickerParameters:
         return int(last_key)
     
     # проверка на то запаршена ли комплектующая
-    def is_all_parsed(part: PcPartPickerPart):
-        last_key = PcPartPickerParameters.get_last_key_of_part(part)
-        links = PcPartPickerLinks.get_links_from_json(part)
+    def is_all_parsed(part: Part):
+        last_key = Parameters.get_last_key_of_part(part)
+        links = Links.get_links_from_json(part)
 
         if int(last_key) + 1 == len(links):
             return True
@@ -451,12 +451,12 @@ class PcPartPickerParameters:
         
     # получение всех данных
     def get_all_pages_data(self):
-        for part in PcPartPickerPart:
-            if PcPartPickerParameters.is_all_parsed(part) == True:
+        for part in Part:
+            if Parameters.is_all_parsed(part) == True:
                 self.logger.info(f"Part: {part.value}. Все данные получены.")
                 continue
             else:
-                last_key = PcPartPickerParameters.get_last_key_of_part(part)
+                last_key = Parameters.get_last_key_of_part(part)
 
                 self.logger.info(f"Part: {part.value}. LastKey: {last_key}.")
 

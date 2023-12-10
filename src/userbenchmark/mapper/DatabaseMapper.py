@@ -7,16 +7,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 
-from .UserBenchmarkAPI import UserBenchmarkAPI
-from ..UserBenchmarkResources import UserBenchmarkResources
+from .API import API
+from ..Part import Part
 
 from .db_entities.PartEntity import PartEntity
 from .db_entities.PartsKey import PartsKey
 from .db_entities.PartsCompareKey import PartsCompareKey
 from .db_entities.Metric import Metric
 from .db_entities.FPSData import FPSData
-
-from ..UserBenchmarkPart import UserBenchmarkPart
 from .db_entities.Game import Game
 
 HOST = "localhost"
@@ -24,7 +22,7 @@ USER_NAME = "root"
 PASSWORD = "root"
 DATABASE_NAME = "userbenchmark_data"
 
-class UserBenchmarkToDBMapper:
+class DatabaseMapper:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -50,7 +48,7 @@ class UserBenchmarkToDBMapper:
     
     def add_parts(self):
         try:
-            parts = UserBenchmarkAPI.get_resources()
+            parts = API.get_resources()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
@@ -66,7 +64,7 @@ class UserBenchmarkToDBMapper:
     
     def add_games(self):
         try:
-            game_keys = UserBenchmarkAPI.get_game_keys_entities()
+            game_keys = API.get_game_keys_entities()
 
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
@@ -82,7 +80,7 @@ class UserBenchmarkToDBMapper:
 
     def add_parts_keys(self):
         try:
-            keys_items = UserBenchmarkAPI.get_keys_of_all_parts()
+            keys_items = API.get_keys_of_all_parts()
 
             for item in keys_items:
                 key = item["Key"]
@@ -101,7 +99,7 @@ class UserBenchmarkToDBMapper:
 
     def add_compare_keys(self):
         try:
-            keys_items = UserBenchmarkAPI.get_compare_keys_of_all_parts()
+            keys_items = API.get_compare_keys_of_all_parts()
 
             for item in keys_items:
                 key = item["Key"]
@@ -121,7 +119,7 @@ class UserBenchmarkToDBMapper:
 
     def add_metrics(self):
         try:
-            metric_items = UserBenchmarkAPI.get_metrics_of_all_parts()
+            metric_items = API.get_metrics_of_all_parts()
 
             for item in metric_items:
                 key = item["Key"]
@@ -145,9 +143,9 @@ class UserBenchmarkToDBMapper:
             self.logger.error(f"Класс UserBenchmarkToDBMapper. Метод add_metrics. Ошибка - {str(e)}")
             return False
 
-    def add_part_metrics_data(self, part: UserBenchmarkPart):
+    def add_part_metrics_data(self, part: Part):
         try:
-            data = UserBenchmarkAPI.get_data_of_part(part)
+            data = API.get_data_of_part(part)
 
             for entity in data:
                 key_entity = self.session.query(PartsCompareKey).filter_by(key=entity.key).first()
@@ -185,12 +183,12 @@ class UserBenchmarkToDBMapper:
             return False
 
     def add_all_parts(self):
-        for part in UserBenchmarkPart:
+        for part in Part:
             self.add_part_metrics_data(part)
     
     def add_unadded_fps_data(self):
         try:
-            fps_data = UserBenchmarkAPI.get_all_fps_data()
+            fps_data = API.get_all_fps_data()
 
             for item in fps_data:
                 cpu_key = item["cpu_key"]
@@ -209,14 +207,21 @@ class UserBenchmarkToDBMapper:
 
                 if cpu or gpu:
                     game = self.session.query(Game).filter_by(key = item["game_key"]).first()
-                    entity = FPSData(fps = item["fps_value"],                                   
-                                     samples = item["samples_value"],
-                                     resolution = item["resolution"], 
-                                     game_settings = item["game_settings"],
-                                     cpu = cpu,
-                                     gpu = gpu,
-                                     game = game)
-                    self.session.add(entity)
+                    fps_item = self.session.query(FPSData).filter_by(cpu = cpu, 
+                                                                     gpu = gpu, 
+                                                                     game = game, 
+                                                                     resolution = item["resolution"], 
+                                                                     game_settings = item["game_settings"]).first()
+                    
+                    if fps_item == None:
+                        entity = FPSData(fps = item["fps_value"],                                   
+                                         samples = item["samples_value"],
+                                         resolution = item["resolution"], 
+                                         game_settings = item["game_settings"],
+                                         cpu = cpu,
+                                         gpu = gpu,
+                                         game = game)
+                        self.session.add(entity)
 
             self.session.commit()
             return True

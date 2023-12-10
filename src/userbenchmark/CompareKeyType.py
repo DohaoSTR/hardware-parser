@@ -1,5 +1,5 @@
 from enum import Enum
 
-class UserBenchmarkCompareKeyType(Enum):
+class CompareKeyType(Enum):
     WithM = "m"
     WithoutM = ""

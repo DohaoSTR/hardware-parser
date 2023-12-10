@@ -1,12 +1,12 @@
 from .UserBenchmarkRequest import UserBecnhmarkRequest
 
-from .UserBenchmarkFPSCombination import UserBenchmarkFPSCombination
-from .UserBenchmarkGameSettings import UserBenchmarkGameSettings
-from .UserBenchmarkPart import UserBenchmarkPart
-from .UserBenchmarkResolution import UserBenchmarkResolution
+from .FPSCombination import FPSCombination
+from .GameSettings import GameSettings
+from .Part import Part
+from .Resolution import Resolution
 
-from .UserBenchmarkKeysHandling import UserBenchmarkKeysHandling
-from .UserBenchmarkGameKeys import UserBenchmarkGameKeys
+from .KeysHandling import KeysHandling
+from .GameKeys import GameKeys
 
 from ..TorManager import TorManager
 
@@ -25,7 +25,7 @@ THREADS_COUNT = 8
 
 # класс для получения fps данных
 # async класс
-class UserBenchmarkAsyncFPSData:
+class AsyncFPSData:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -94,20 +94,25 @@ class UserBenchmarkAsyncFPSData:
         return None, None
     
     # метод для формирования ссылки с fps данными
-    def __form_fps_link(self, game_key, gpu_key, cpu_key, game_settings: UserBenchmarkGameSettings, resolution: UserBenchmarkResolution):
+    def __form_fps_link(self, game_key, gpu_key, cpu_key, 
+                        game_settings: GameSettings, 
+                        resolution: Resolution):
         link = "https://www.userbenchmark.com/pages/product.xhtml?product_id=" + str(game_key) + "&fps_key=" + str(gpu_key) + "." + str(cpu_key) + "." + game_settings.value + "." + resolution.value + ".0"
 
         return link
 
     # метод для получения названия файла
-    def __form_fps_file_name(game_key, game_settings, resolution, combination: UserBenchmarkFPSCombination):
+    def __form_fps_file_name(game_key, game_settings, resolution, combination: FPSCombination):
         file_name = f"{combination.value}_{game_key}_{game_settings.value}_{resolution.value}"
         
         return file_name
     
     # получение данных из json файла
-    def get_fps_data_from_json(game_key, game_settings: UserBenchmarkGameSettings, resolution: UserBenchmarkResolution, combination: UserBenchmarkFPSCombination):
-        fps_file_name = UserBenchmarkAsyncFPSData.__form_fps_file_name(game_key, game_settings, resolution, combination)
+    def get_fps_data_from_json(game_key, 
+                               game_settings: GameSettings, 
+                               resolution: Resolution, 
+                               combination: FPSCombination):
+        fps_file_name = AsyncFPSData.__form_fps_file_name(game_key, game_settings, resolution, combination)
         end_folder = combination.value + "_" + game_settings.value + "_" + resolution.value + "\\"
 
         current_directory = os.getcwd()
@@ -122,8 +127,12 @@ class UserBenchmarkAsyncFPSData:
         return data
 
     # сохранение данных в файл
-    def save_fps_data_to_json(game_key, game_settings: UserBenchmarkGameSettings, resolution: UserBenchmarkResolution, combination: UserBenchmarkFPSCombination, data):
-        fps_data = UserBenchmarkAsyncFPSData.get_fps_data_from_json(game_key, game_settings, resolution, combination)
+    def save_fps_data_to_json(game_key, 
+                              game_settings: GameSettings, 
+                              resolution: Resolution, 
+                              combination: FPSCombination, 
+                              data):
+        fps_data = AsyncFPSData.get_fps_data_from_json(game_key, game_settings, resolution, combination)
 
         if fps_data == None:
             existing_data = {}
@@ -132,7 +141,7 @@ class UserBenchmarkAsyncFPSData:
 
         existing_data.update(data)
 
-        fps_file_name = UserBenchmarkAsyncFPSData.__form_fps_file_name(game_key, game_settings, resolution, combination)
+        fps_file_name = AsyncFPSData.__form_fps_file_name(game_key, game_settings, resolution, combination)
         end_folder = combination.value + "_" + game_settings.value + "_" + resolution.value + "\\"
 
         current_directory = os.getcwd()
@@ -145,7 +154,10 @@ class UserBenchmarkAsyncFPSData:
             json.dump(existing_data, json_file, indent=4, ensure_ascii=False)
 
     # получение всех fps данных для игры
-    def __get_fps_data_for_game(self, game_key, gpu_fps_keys, cpu_fps_keys, game_settings: UserBenchmarkGameSettings, resolution: UserBenchmarkResolution, fps_combination: UserBenchmarkFPSCombination, last_index = 0):
+    def __get_fps_data_for_game(self, game_key, gpu_fps_keys, cpu_fps_keys, 
+                                game_settings: GameSettings, 
+                                resolution: Resolution, 
+                                fps_combination: FPSCombination, last_index = 0):
         fps_data = {}
         
         index = last_index
@@ -191,19 +203,19 @@ class UserBenchmarkAsyncFPSData:
                 
                 index = index + 1
                 if index % 100 == 0:
-                    UserBenchmarkAsyncFPSData.save_fps_data_to_json(game_key, game_settings, resolution, fps_combination, fps_data)
+                    AsyncFPSData.save_fps_data_to_json(game_key, game_settings, resolution, fps_combination, fps_data)
 
-        UserBenchmarkAsyncFPSData.save_fps_data_to_json(game_key, game_settings, resolution, fps_combination, fps_data)
+        AsyncFPSData.save_fps_data_to_json(game_key, game_settings, resolution, fps_combination, fps_data)
         return fps_data
     
     # запуск паралельного парсера
-    def parallel_parse_data(self, game_keys, gpu_fps_keys, cpu_fps_keys, game_settings, resolution, fps_combination: UserBenchmarkFPSCombination):
+    def parallel_parse_data(self, game_keys, gpu_fps_keys, cpu_fps_keys, game_settings, resolution, fps_combination: FPSCombination):
         futures = []
         event = threading.Event()
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=THREADS_COUNT) as executor:
             for game_key in game_keys:
-                missing_keys = UserBenchmarkAsyncFPSData.get_missing_keys(game_key, fps_combination, game_settings, resolution)
+                missing_keys = AsyncFPSData.get_missing_keys(game_key, fps_combination, game_settings, resolution)
                 last_index = 0
                 
                 if missing_keys == None:
@@ -212,13 +224,13 @@ class UserBenchmarkAsyncFPSData:
                 elif missing_keys == [] or len(missing_keys) == 0:
                     pass
                 else:
-                    if fps_combination == UserBenchmarkFPSCombination.GPU:
+                    if fps_combination == FPSCombination.GPU:
                         gpu_fps_keys = missing_keys  
                         cpu_fps_keys = [0]
-                    elif fps_combination == UserBenchmarkFPSCombination.CPU:
+                    elif fps_combination == FPSCombination.CPU:
                         cpu_fps_keys = missing_keys
                         gpu_fps_keys = [0]
-                    elif fps_combination == UserBenchmarkFPSCombination.GPU_CPU:
+                    elif fps_combination == FPSCombination.GPU_CPU:
                         gpu_fps_keys = []
                         cpu_fps_keys = []
 
@@ -228,7 +240,7 @@ class UserBenchmarkAsyncFPSData:
                                 gpu_fps_keys.append(gpu_key)
                                 cpu_fps_keys.append(cpu_key)
 
-                    last_index = UserBenchmarkAsyncFPSData.get_last_index_from_json_file(game_key, fps_combination, game_settings, resolution) + 1
+                    last_index = AsyncFPSData.get_last_index_from_json_file(game_key, fps_combination, game_settings, resolution) + 1
 
                     future = executor.submit(self.__get_fps_data_for_game, game_key, gpu_fps_keys, cpu_fps_keys, game_settings, resolution, fps_combination, last_index)
                     futures.append(future)
@@ -241,24 +253,27 @@ class UserBenchmarkAsyncFPSData:
             future.result()
 
     # запуск парсера на конкретных настройках
-    def parse_fps_data(self, combination: UserBenchmarkFPSCombination, game_settings: UserBenchmarkGameSettings, resolution: UserBenchmarkResolution):
-        game_keys = UserBenchmarkGameKeys.get_game_keys_from_json()
+    def parse_fps_data(self, 
+                       combination: FPSCombination, 
+                       game_settings: GameSettings, 
+                       resolution: Resolution):
+        game_keys = GameKeys.get_game_keys_from_json()
         game_keys_list = list(game_keys.keys())
         game_keys = game_keys_list[:GAMES_TO_PARSE_COUNT]
 
-        if combination == UserBenchmarkFPSCombination.GPU:
-            fps_keys = UserBenchmarkKeysHandling.get_handled_part_keys_from_json(UserBenchmarkPart.GPU)
+        if combination == FPSCombination.GPU:
+            fps_keys = KeysHandling.get_handled_part_keys_from_json(Part.GPU)
 
             gpu_fps_keys_list = [entry["key"] for entry in fps_keys.values()]
             cpu_fps_keys_list = [0]
-        elif combination == UserBenchmarkFPSCombination.CPU:
-            fps_keys = UserBenchmarkKeysHandling.get_handled_part_keys_from_json(UserBenchmarkPart.CPU)
+        elif combination == FPSCombination.CPU:
+            fps_keys = KeysHandling.get_handled_part_keys_from_json(Part.CPU)
 
             gpu_fps_keys_list = [0]
             cpu_fps_keys_list = [entry["key"] for entry in fps_keys.values()]
-        elif combination == UserBenchmarkFPSCombination.GPU_CPU:
-            gpu_fps_keys = UserBenchmarkKeysHandling.get_handled_part_keys_from_json(UserBenchmarkPart.GPU)
-            cpu_fps_keys = UserBenchmarkKeysHandling.get_handled_part_keys_from_json(UserBenchmarkPart.CPU)
+        elif combination == FPSCombination.GPU_CPU:
+            gpu_fps_keys = KeysHandling.get_handled_part_keys_from_json(Part.GPU)
+            cpu_fps_keys = KeysHandling.get_handled_part_keys_from_json(Part.CPU)
 
             gpu_fps_keys_list = [entry["key"] for entry in gpu_fps_keys.values()]
             cpu_fps_keys_list = [entry["key"] for entry in cpu_fps_keys.values()]
@@ -266,15 +281,18 @@ class UserBenchmarkAsyncFPSData:
         self.parallel_parse_data(game_keys, gpu_fps_keys_list, cpu_fps_keys_list, game_settings, resolution, combination)
 
     # метод возвращающий все ключи которых не хватает в файле c фпс данными
-    def get_missing_keys(game_key: int, combination: UserBenchmarkFPSCombination, game_settings: UserBenchmarkGameSettings, resolution: UserBenchmarkResolution):
-        fps_data = UserBenchmarkAsyncFPSData.get_fps_data_from_json(game_key, game_settings, resolution, combination)
+    def get_missing_keys(game_key: int, 
+                         combination: FPSCombination, 
+                         game_settings: GameSettings, 
+                         resolution: Resolution):
+        fps_data = AsyncFPSData.get_fps_data_from_json(game_key, game_settings, resolution, combination)
 
         if fps_data == None or len(fps_data) == 0:
             return None
 
-        if combination == UserBenchmarkFPSCombination.GPU_CPU:
-            handled_cpu_keys_data = UserBenchmarkKeysHandling.get_handled_part_keys_from_json(UserBenchmarkPart.CPU)
-            handled_gpu_keys_data = UserBenchmarkKeysHandling.get_handled_part_keys_from_json(UserBenchmarkPart.GPU)
+        if combination == FPSCombination.GPU_CPU:
+            handled_cpu_keys_data = KeysHandling.get_handled_part_keys_from_json(Part.CPU)
+            handled_gpu_keys_data = KeysHandling.get_handled_part_keys_from_json(Part.GPU)
 
             handled_cpu_keys = [int(entry["key"]) for entry in handled_cpu_keys_data.values()]
             handled_gpu_keys = [int(entry["key"]) for entry in handled_gpu_keys_data.values()]
@@ -284,13 +302,13 @@ class UserBenchmarkAsyncFPSData:
             missing_combinations_list = list(missing_combinations)
 
             return missing_combinations_list
-        elif combination == UserBenchmarkFPSCombination.CPU or combination == UserBenchmarkFPSCombination.GPU:
-            part = UserBenchmarkFPSCombination.PART_MAPPING.get(combination)
-            handled_part_keys_data = UserBenchmarkKeysHandling.get_handled_part_keys_from_json(part)
+        elif combination == FPSCombination.CPU or combination == FPSCombination.GPU:
+            part = FPSCombination.PART_MAPPING.get(combination)
+            handled_part_keys_data = KeysHandling.get_handled_part_keys_from_json(part)
 
             handled_keys = [int(entry["key"]) for entry in handled_part_keys_data.values()]
             
-            key_name = UserBenchmarkFPSCombination.KEY_MAPPING.get(combination)
+            key_name = FPSCombination.KEY_MAPPING.get(combination)
             part_keys = [entry[key_name] for entry in fps_data.values()]
 
             missing_keys = [key for key in handled_keys if key not in part_keys]
@@ -298,8 +316,11 @@ class UserBenchmarkAsyncFPSData:
             return missing_keys
 
     # метод получения последнего индекса из файла
-    def get_last_index_from_json_file(game_key: int, combination: UserBenchmarkFPSCombination, game_settings: UserBenchmarkGameSettings, resolution: UserBenchmarkResolution):
-        fps_data = UserBenchmarkAsyncFPSData.get_fps_data_from_json(game_key, game_settings, resolution, combination)
+    def get_last_index_from_json_file(game_key: int, 
+                                      combination: FPSCombination, 
+                                      game_settings: GameSettings, 
+                                      resolution: Resolution):
+        fps_data = AsyncFPSData.get_fps_data_from_json(game_key, game_settings, resolution, combination)
         last_key = list(fps_data.keys())[-1]
 
         return int(last_key)

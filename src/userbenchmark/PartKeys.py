@@ -1,5 +1,5 @@
-from .UserBenchmarkPart import UserBenchmarkPart
-from .UserBenchmarkResources import UserBenchmarkResources
+from .Part import Part
+from .Resources import Resources
 from .UserBenchmarkRequest import UserBecnhmarkRequest
 
 from logging import Logger
@@ -14,7 +14,7 @@ import os
 
 # класс для получения ключей для каждой комплектующей
 # данные ключи необходимы для работы с вкладками FPS и BUILD
-class UserBenchmarkPartKeys:
+class PartKeys:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
     
@@ -71,16 +71,16 @@ class UserBenchmarkPartKeys:
         return keys
     
     # получение ключей + модели
-    def __get_keys_data(self, part: UserBenchmarkPart):
-        links = UserBenchmarkResources.get_links_from_resources_csv(part)
-        models = UserBenchmarkResources.get_models_from_resources_csv(part)
+    def __get_keys_data(self, part: Part):
+        links = Resources.get_links_from_resources_csv(part)
+        models = Resources.get_models_from_resources_csv(part)
 
         keys = self.__extract_keys_from_links(links)
 
         return models, keys
 
     # метод для получения ключей из json файла
-    def get_part_keys_from_json(part: UserBenchmarkPart):
+    def get_part_keys_from_json(part: Part):
         current_directory = os.getcwd()
         file_path = current_directory + "\\data\\userbenchmark\\part_keys\\" + part.value + "_keys.json"
         with open(file_path, 'r', encoding='utf-8') as json_file:
@@ -89,7 +89,7 @@ class UserBenchmarkPartKeys:
         return part_keys
     
     # метод для сохраненяи ключей в json файл
-    def save_part_keys_to_json(part: UserBenchmarkPart, data):
+    def save_part_keys_to_json(part: Part, data):
         current_directory = os.getcwd()
         save_directory = current_directory + "\\data\\userbenchmark\\part_keys\\"
         filename = part.value + "_keys"
@@ -99,11 +99,11 @@ class UserBenchmarkPartKeys:
     
     # метод получения ключей для всех комплектующих
     def get_all_part_keys(self):
-        for part in UserBenchmarkPart:
+        for part in Part:
             models, keys = self.__get_keys_data(part)
 
             keys_data = {}
             for i in range(len(models)):
                 keys_data[i] = { "model": models[i], "key": keys[i] }
 
-            UserBenchmarkPartKeys.save_part_keys_to_json(part, keys_data)
+            PartKeys.save_part_keys_to_json(part, keys_data)

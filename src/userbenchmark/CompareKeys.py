@@ -1,6 +1,6 @@
-from .UserBenchmarkPart import UserBenchmarkPart
-from .UserBenchmarkCompareKeyType import UserBenchmarkCompareKeyType
-from .UserBenchmarkResources import UserBenchmarkResources
+from .Part import Part
+from .CompareKeyType import CompareKeyType
+from .Resources import Resources
 
 import json
 import re
@@ -8,7 +8,7 @@ import re
 import os
 
 # класс для получения compare keys
-class UserBenchmarkCompareKeys:
+class CompareKeys:
     # метод возвращающий тип ссылки
     def get_link_type(self, link):
         if "SpeedTest" in link:
@@ -25,7 +25,7 @@ class UserBenchmarkCompareKeys:
         i = 0
 
         for link in links:
-            compare_key_type = UserBenchmarkCompareKeyType.WithoutM
+            compare_key_type = CompareKeyType.WithoutM
             link_type = self.get_link_type(link)
 
             match = re.search(r'/(\d+)', link)
@@ -38,9 +38,9 @@ class UserBenchmarkCompareKeys:
                 key = None
 
             if link_type == "Rating":
-                compare_key_type = UserBenchmarkCompareKeyType.WithoutM
+                compare_key_type = CompareKeyType.WithoutM
             else:
-                compare_key_type = UserBenchmarkCompareKeyType.WithM
+                compare_key_type = CompareKeyType.WithM
 
             keys.append(key)
             compare_key_types.append(compare_key_type)
@@ -48,16 +48,16 @@ class UserBenchmarkCompareKeys:
         return keys, compare_key_types
 
     # получение моделей
-    def get_compare_keys_data(self, part: UserBenchmarkPart):
-        links = UserBenchmarkResources.get_links_from_resources_csv(part)
-        models = UserBenchmarkResources.get_models_from_resources_csv(part)
+    def get_compare_keys_data(self, part: Part):
+        links = Resources.get_links_from_resources_csv(part)
+        models = Resources.get_models_from_resources_csv(part)
 
         keys, types = self.extract_compare_keys_from_links(links)
 
         return models, keys, types
     
     # получение compare ключей из json файла
-    def get_compare_keys_from_json(part: UserBenchmarkPart):
+    def get_compare_keys_from_json(part: Part):
         current_directory = os.getcwd()
         file_path = current_directory + "\\data\\userbenchmark\\compare_keys\\" + part.value + "_compare_keys.json"
         with open(file_path, 'r', encoding='utf-8') as json_file:
@@ -66,7 +66,7 @@ class UserBenchmarkCompareKeys:
         return compare_keys
 
     # сохранение compare ключей в json
-    def save_compare_keys_to_json(part: UserBenchmarkPart, data):
+    def save_compare_keys_to_json(part: Part, data):
         current_directory = os.getcwd()
         save_directory = current_directory + "\\data\\userbenchmark\\compare_keys\\"
         filename = part.value + "_compare_keys"
@@ -76,15 +76,15 @@ class UserBenchmarkCompareKeys:
 
     # получение compare ключей для всех типов комплектующих
     def get_all_compare_keys(self):
-        for part in UserBenchmarkPart:
+        for part in Part:
             models, keys, types = self.get_compare_keys_data(part)
 
             keys_data = {}
             for i in range(len(models)):
                 keys_data[i] = { "model": models[i], "key": keys[i], "type": types[i].value }
 
-            UserBenchmarkCompareKeys.save_compare_keys_to_json(part, keys_data)
+            CompareKeys.save_compare_keys_to_json(part, keys_data)
 
 if __name__ == "__main__":
-    parser = UserBenchmarkCompareKeys()
+    parser = CompareKeys()
     parser.get_all_compare_keys()

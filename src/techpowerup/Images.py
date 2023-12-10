@@ -1,6 +1,6 @@
-from .TechpowerupPart import TechpowerupPart
+from .Part import Part
 from ..RequestWebDriver import RequestWebDriver
-from .TechpowerupParameters import TechpowerupParameters
+from .Parameters import Parameters
 
 import logging
 from logging import Logger
@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 import os
 
 # получение изображений комплектующих с сайта Techpowerup
-class TechpowerupImages:
+class Images:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -43,14 +43,14 @@ class TechpowerupImages:
     # keys - список содержащий PartKey для всех комплеткующих одной категории
     # links - список содержащий Link каждого изображения    
     # по сути keys[0] и links[0] - это данные одной изображения (ссылка на картинку и соответствующий ключ)
-    def __get_image_links(part: TechpowerupPart):
-        pages_data = TechpowerupParameters.get_part_parameters_from_json(part)
+    def __get_image_links(part: Part):
+        pages_data = Parameters.get_part_parameters_from_json(part)
         
         keys = []
         links = []
 
         for key, page_data in pages_data.items():
-            part_key, links_element = TechpowerupImages.__get_image_section_data(page_data)
+            part_key, links_element = Images.__get_image_section_data(page_data)
 
             keys.append(part_key)
             links.append(links_element)
@@ -62,8 +62,8 @@ class TechpowerupImages:
     # "Ссылка": {
     # "Name": "Название картинки",
     # "Keys": [Список с ключами комплеткующих, для которых данное изображение актуально]
-    def __save_summary_part_data(part: TechpowerupPart):
-        keys, links_elements = TechpowerupImages.__get_image_links(part)
+    def __save_summary_part_data(part: Part):
+        keys, links_elements = Images.__get_image_links(part)
 
         images_data = []
 
@@ -93,11 +93,11 @@ class TechpowerupImages:
 
     #метод для сохранения кратких данных о изображениях, для всех категорий комплектующих
     def save_all_summary_parts_data(self):
-        for part in TechpowerupPart:
-            TechpowerupImages.__save_summary_part_data(part)
+        for part in Part:
+            Images.__save_summary_part_data(part)
 
     # метод для получения кратких данных о изображениях, для категории комплектующих
-    def __get_summary_part_data(part: TechpowerupPart):
+    def __get_summary_part_data(part: Part):
         current_file_path = os.path.abspath(__file__)
         file_path = os.path.dirname(current_file_path) + "\\data\\images\\" + part.value + "_images_links.json"
         
@@ -127,8 +127,8 @@ class TechpowerupImages:
         with open(save_directory + filename, 'wb') as file:
             file.write(response.content)
 
-    def save_part_images(self, part: TechpowerupPart):
-        data = TechpowerupImages.__get_summary_part_data(part)
+    def save_part_images(self, part: Part):
+        data = Images.__get_summary_part_data(part)
 
         index = 0
         for link, info in data.items():
@@ -138,13 +138,13 @@ class TechpowerupImages:
             request_web_driver = RequestWebDriver(self.logger)
             response = request_web_driver.get_response(link)
 
-            TechpowerupImages.__save_image(folder, filename, response)
+            Images.__save_image(folder, filename, response)
 
             self.logger.info(f"{index}. Картинка сохранена - Name: {filename}, Link: {link}")
             index = index + 1
 
     def save_all_images(self):
-        for part in TechpowerupPart:
+        for part in Part:
             self.save_part_images(part)
 
 if __name__ == "__main__":
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
     
-    parser = TechpowerupImages(logger)
+    parser = Images(logger)
     with parser:
         parser.save_all_summary_parts_data()
         parser.save_all_images()

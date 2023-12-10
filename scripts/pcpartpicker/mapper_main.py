@@ -15,4 +15,4 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 db = DatabaseMapper(logger)
-db.add_all_power_supply()
+db.add_all_image_data()

@@ -1,4 +1,4 @@
-from .UserBenchmarkPart import UserBenchmarkPart
+from .Part import Part
 
 from logging import Logger
 import logging
@@ -11,7 +11,7 @@ import os
 import requests
 
 # класс для скачивания resources в csv формате с сайта
-class UserBenchmarkResources:
+class Resources:
     def __init__(self, logger: Logger = None):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -26,11 +26,11 @@ class UserBenchmarkResources:
         return self
     
     # получение ссылки на ресурс в зависмости от типа комплектующей
-    def __get_resources_link(part: UserBenchmarkPart):
+    def __get_resources_link(part: Part):
         return "https://www.userbenchmark.com/resources/download/csv/" + str(part.value).upper() + "_UserBenchmarks.csv"
     
     # метод для получения пути к файлу с csv ресурсами
-    def __get_downloaded_file_path(part: UserBenchmarkPart):
+    def __get_downloaded_file_path(part: Part):
         current_directory = os.getcwd()
         downloaded_file_path = current_directory + "\\data\\userbenchmark\\resources\\" + str(part.value).upper() + "_UserBenchmarks.csv"
         
@@ -38,8 +38,8 @@ class UserBenchmarkResources:
     
     # метод для проверки скачаны ли ресурсы
     def __is_resources_downloaded():
-        for part in UserBenchmarkPart:
-            downloaded_file_path = UserBenchmarkResources.__get_downloaded_file_path(part)
+        for part in Part:
+            downloaded_file_path = Resources.__get_downloaded_file_path(part)
                 
             if os.path.isfile(downloaded_file_path):
                 continue
@@ -57,7 +57,7 @@ class UserBenchmarkResources:
     
     # метод для удаления скачанных csv ресурсов с сайта
     def __delete_resources(self):
-        downloaded_file_directory = UserBenchmarkResources.__get_downloaded_file_directory()
+        downloaded_file_directory = Resources.__get_downloaded_file_directory()
 
         for item in os.listdir(downloaded_file_directory):
             item_path = os.path.join(downloaded_file_directory, item)
@@ -69,13 +69,13 @@ class UserBenchmarkResources:
         self.logger.info(f"Очистка директории с csv ресурсами!")
 
     # метод для скачивания csv ресурса с сайта 
-    def get_csv_resource(self, part: UserBenchmarkPart):
-        if UserBenchmarkResources.__is_resources_downloaded() == True:
+    def get_csv_resource(self, part: Part):
+        if Resources.__is_resources_downloaded() == True:
             self.__delete_resources()
         
         while True:
-            link = UserBenchmarkResources.__get_resources_link(part)
-            downloaded_file_path = UserBenchmarkResources.__get_downloaded_file_path(part)
+            link = Resources.__get_resources_link(part)
+            downloaded_file_path = Resources.__get_downloaded_file_path(part)
 
             response = requests.get(link)
             with open(downloaded_file_path, "wb") as file:
@@ -90,11 +90,11 @@ class UserBenchmarkResources:
     
     # метод для скачивания всех csv ресурсов с сайта
     def get_all_resources(self):
-        for part in UserBenchmarkPart:
+        for part in Part:
             self.get_csv_resource(part)
 
     # получение данных из csv ресурсов 
-    def get_links_from_resources_csv(part: UserBenchmarkPart):
+    def get_links_from_resources_csv(part: Part):
         current_directory = os.getcwd()
         csv_link = current_directory + "\\data\\userbenchmark\\resources\\" + part.value + "_UserBenchmarks.csv"
 
@@ -112,7 +112,7 @@ class UserBenchmarkResources:
                     
             return column_values
         
-    def get_models_from_resources_csv(part: UserBenchmarkPart):
+    def get_models_from_resources_csv(part: Part):
         current_directory = os.getcwd()
         csv_link = current_directory + "\\data\\userbenchmark\\resources\\" + part.value + "_UserBenchmarks.csv"
 
@@ -141,6 +141,6 @@ if __name__ == "__main__":
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
-    parser = UserBenchmarkResources(logger)
+    parser = Resources(logger)
     with parser:
         parser.get_all_resources()
