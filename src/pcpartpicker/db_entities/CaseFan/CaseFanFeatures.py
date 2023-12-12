@@ -9,5 +9,5 @@ class CaseFanFeatures(Base):
     id = Column(Integer, primary_key=True)
     value = Column(Text, nullable=False)
 
-    case_fan_id = Column(Integer, ForeignKey('case_fan.id'), nullable=False)
-    case_fan = relationship("CaseFanData")
+    part_id = Column(Integer, ForeignKey('part.id'), nullable=False)
+    part = relationship("PartEntity")

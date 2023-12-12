@@ -26,5 +26,5 @@ class CPUCacheEntity(Base, BaseEntity):
     
     type = Column(Enum('performance', 'efficiency'))
 
-    cpu_id = Column(Integer, ForeignKey('cpu_main_data.id'))
-    cpu = relationship("CPUMainDataEntity")
+    part_id = Column(Integer, ForeignKey('part.id'), nullable=False)
+    part = relationship("PartEntity")

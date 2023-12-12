@@ -12,5 +12,5 @@ class GPUConnectData(Base):
     case_expansion_slot_width = Column(Integer, default=None)
     total_slot_width = Column(Integer, default=None)
 
-    gpu_id = Column(Integer, ForeignKey('gpu_main_data.id'), unique=False, nullable=False)
-    gpu = relationship("GPUMainData")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

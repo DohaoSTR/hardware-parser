@@ -12,5 +12,5 @@ class MotherboardEthernet(Base):
     speed_measure = Column(Integer) 
     network_adapter = Column(String(250))
 
-    motherboard_id = Column(Integer, ForeignKey('motherboard_main_data.id'), nullable=False)
-    motherboard = relationship('MotherboardMainData')
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

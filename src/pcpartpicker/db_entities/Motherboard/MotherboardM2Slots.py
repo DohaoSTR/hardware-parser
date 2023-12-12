@@ -11,5 +11,5 @@ class MotherboardM2Slots(Base):
     key_name = Column(String(10))
     description = Column(String(250))
 
-    motherboard_id = Column(Integer, ForeignKey('motherboard_main_data.id'), nullable=False)
-    motherboard = relationship('MotherboardMainData')
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

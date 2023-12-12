@@ -9,5 +9,5 @@ class PowerSupplyEfficiency(Base):
     id = Column(Integer, primary_key=True)
     value = Column(String(250), nullable=False)
 
-    power_supply_id = Column(Integer, ForeignKey('power_supply.id'), nullable=False)
-    power_supply = relationship("PowerSupplyData")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

@@ -10,5 +10,5 @@ class MotherboardMultiInterface(Base):
     ways_count = Column(Integer) 
     name_technology = Column(String(250))
 
-    motherboard_id = Column(Integer, ForeignKey('motherboard_main_data.id'), nullable=False)
-    motherboard = relationship('MotherboardMainData')
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

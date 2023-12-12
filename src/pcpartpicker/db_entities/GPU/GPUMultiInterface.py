@@ -10,5 +10,5 @@ class GPUMultiInterfaceData(Base):
     ways_count = Column(Integer, default=None)
     name_technology = Column(String(250), default=None)
 
-    gpu_id = Column(Integer, ForeignKey('gpu_main_data.id'), unique=False, nullable=False)
-    gpu = relationship("GPUMainData")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

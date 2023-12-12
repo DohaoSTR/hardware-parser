@@ -29,5 +29,5 @@ class MotherboardConnectData(Base):
     sas_6_0 = Column(Integer)
     sata_1_5 = Column(Integer)
 
-    motherboard_id = Column(Integer, ForeignKey('motherboard_main_data.id'), unique=True, nullable=False)
-    motherboard = relationship('MotherboardMainData')
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True, nullable=False)
+    part = relationship("PartEntity")

@@ -202,18 +202,18 @@ class DatabaseMapper:
                 self.session.flush()
 
                 core_entity = item.cpu_core
-                core_entity.cpu = main_data_entity
+                core_entity.part = part
                 self.session.add(core_entity)
 
                 performance_cache_entity = item.perfomance_cache
                 efficiency_cache_entity = item.efficiency_cache
                 
                 if performance_cache_entity != None:
-                    performance_cache_entity.cpu = main_data_entity
+                    performance_cache_entity.part = part
                     self.session.add(performance_cache_entity)
 
                 if efficiency_cache_entity != None:
-                    efficiency_cache_entity.cpu = main_data_entity
+                    efficiency_cache_entity.part = part
                     self.session.add(efficiency_cache_entity)
 
             self.session.commit()
@@ -239,28 +239,28 @@ class DatabaseMapper:
 
                 outputs_data = item.outputs_data
                 if outputs_data != None:
-                    outputs_data.gpu = main_data_entity
+                    outputs_data.part = part
                     self.session.add(outputs_data)
 
                 connect_data = item.connect_data
                 if connect_data != None:
-                    connect_data.gpu = main_data_entity
+                    connect_data.part = part
                     self.session.add(connect_data)
 
                 external_power_data_1 = item.external_power_data_1
                 if external_power_data_1 != None:
-                    external_power_data_1.gpu = main_data_entity
+                    external_power_data_1.part = part
                     self.session.add(external_power_data_1)
 
                 external_power_data_2 = item.external_power_data_2
                 if external_power_data_2 != None:
-                    external_power_data_2.gpu = main_data_entity
+                    external_power_data_2.part = part
                     self.session.add(external_power_data_2)
 
                 multi_interface_data = item.multi_interface_data
                 if multi_interface_data != None:
                     for interface in multi_interface_data:
-                        interface.gpu = main_data_entity
+                        interface.part = part
                         self.session.add(interface)
 
             self.session.commit()
@@ -286,7 +286,7 @@ class DatabaseMapper:
 
                 memory_characteristics = item.memory_characteristics
                 if memory_characteristics != None:
-                    memory_characteristics.memory = main_data_entity
+                    memory_characteristics.part = part
                     self.session.add(memory_characteristics)
 
             self.session.commit()
@@ -328,37 +328,37 @@ class DatabaseMapper:
 
                 connect_data = item.connect_data
                 if connect_data != None:
-                    connect_data.motherboard = main_data_entity
+                    connect_data.part = part
                     self.session.add(connect_data)
 
                 socket_entities = item.socket_entities
                 if socket_entities != None:
                     for socket_entity in socket_entities:
-                        socket_entity.motherboard = main_data_entity
+                        socket_entity.part = part
                         self.session.add(socket_entity)
 
                 ethernet_entities = item.ethernet_entities
                 if ethernet_entities != None:
                     for ethernet_entity in ethernet_entities:
-                        ethernet_entity.motherboard = main_data_entity
+                        ethernet_entity.part = part
                         self.session.add(ethernet_entity)
 
                 memory_speed_entites = item.memory_speed_entites
                 if memory_speed_entites != None:
                     for memory_speed_entity in memory_speed_entites:
-                        memory_speed_entity.motherboard = main_data_entity
+                        memory_speed_entity.part = part
                         self.session.add(memory_speed_entity)
 
                 m2_entities = item.m2_entities
                 if m2_entities != None:
                     for m2_entity in m2_entities:
-                        m2_entity.motherboard = main_data_entity
+                        m2_entity.part = part
                         self.session.add(m2_entity)
 
                 multi_interface_data = item.interface_entities
                 if multi_interface_data != None:
                     for interface in multi_interface_data:
-                        interface.motherboard = main_data_entity
+                        interface.part = part
                         self.session.add(interface)
 
             self.session.commit()
@@ -419,25 +419,25 @@ class DatabaseMapper:
                 front_panel_usb_entities = item.front_panel_usb_entities
                 if front_panel_usb_entities != None:
                     for entity in front_panel_usb_entities:
-                        entity.case = case_data
+                        entity.part = part
                         self.session.add(entity)
 
                 motherboard_form_factor_entities = item.motherboard_form_factor_entities
                 if motherboard_form_factor_entities != None:
                     for entity in motherboard_form_factor_entities:
-                        entity.case = case_data
+                        entity.part = part
                         self.session.add(entity)
 
                 drive_bays_entities = item.drive_bays_entities
                 if drive_bays_entities != None:
                     for entity in drive_bays_entities:
-                        entity.case = case_data
+                        entity.part = part
                         self.session.add(entity)
 
                 expansion_slots_entities = item.expansion_slots_entities
                 if expansion_slots_entities != None:
                     for entity in expansion_slots_entities:
-                        entity.case = case_data
+                        entity.part = part
                         self.session.add(entity)
 
             self.session.commit()
@@ -479,13 +479,13 @@ class DatabaseMapper:
                 case_fan_connector = item.case_fan_connector
                 if case_fan_connector != None:
                     for entity in case_fan_connector:
-                        entity.case_fan = case_fan
+                        entity.part = part
                         self.session.add(entity)
 
                 case_fan_features = item.case_fan_features
                 if case_fan_features != None:
                     for entity in case_fan_features:
-                        entity.case_fan = case_fan
+                        entity.part = part
                         self.session.add(entity)
 
             self.session.commit()
@@ -528,7 +528,7 @@ class DatabaseMapper:
                 cooler_sockets = item.cooler_sockets
                 if cooler_sockets != None:
                     for entity in cooler_sockets:
-                        entity.cooler = cooler_data
+                        entity.part = part
                         self.session.add(entity)
 
             self.session.commit()
@@ -554,19 +554,19 @@ class DatabaseMapper:
 
                 power_supply_connectors = item.power_supply_connectors
                 if power_supply_connectors != None:
-                    power_supply_connectors.power_supply = power_supply
+                    power_supply_connectors.part = part
                     self.session.add(power_supply_connectors)
 
                 power_supply_efficiency = item.power_supply_efficiency
                 if power_supply_efficiency != None:
                     for entity in power_supply_efficiency:
-                        entity.power_supply = power_supply
+                        entity.part = part
                         self.session.add(entity)
 
                 power_supply_outputs = item.power_supply_outputs
                 if power_supply_outputs != None:
                     for entity in power_supply_outputs:
-                        entity.power_supply = power_supply
+                        entity.part = part
                         self.session.add(entity)
                 
             self.session.commit()

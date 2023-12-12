@@ -10,8 +10,8 @@ class FPSData(Base):
     id = Column(Integer, primary_key=True)
     fps = Column(DOUBLE)
     samples = Column(Integer)
-    resolution = Column(Enum('Low', 'Med', 'High', 'Max', 'None'), nullable=False)
-    game_settings = Column(Enum('720p', '1080p', '1440p', '4K', 'None'), nullable=False)
+    resolution = Column(Enum('720p', '1080p', '1440p', '4K', 'None'), nullable=False)
+    game_settings = Column(Enum('Low', 'Med', 'High', 'Max', 'None'), nullable=False)
 
     cpu_id = Column(Integer, ForeignKey('parts.id'))
     gpu_id = Column(Integer, ForeignKey('parts.id'))

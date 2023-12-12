@@ -21,5 +21,5 @@ class MemoryCharacteristics(Base):
     trp = Column(Integer, nullable=True)
     tras = Column(Integer, nullable=True)
 
-    memory_id = Column(Integer, ForeignKey('memory_main_data.id'), unique=True, nullable=False)
-    memory = relationship('MemoryMainData')
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True, nullable=False)
+    part = relationship("PartEntity")

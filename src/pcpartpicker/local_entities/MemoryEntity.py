@@ -65,7 +65,7 @@ class MemoryEntity(BaseEntity):
         self.cast_float_fields()
 
         self.memory_main_data = self.populate_entity("MemoryMainData", "part_id")
-        self.memory_characteristics = self.populate_entity("MemoryCharacteristics", "memory_id")
+        self.memory_characteristics = self.populate_entity("MemoryCharacteristics", "part_id")
 
     def handle_speed(self, memory_string):
         if memory_string != None:

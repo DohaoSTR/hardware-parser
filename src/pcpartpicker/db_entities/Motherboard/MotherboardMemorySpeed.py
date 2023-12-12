@@ -10,5 +10,5 @@ class MotherboardMemorySpeed(Base):
     memory_type = Column(String(10))
     memory_speed = Column(Integer) 
 
-    motherboard_id = Column(Integer, ForeignKey('motherboard_main_data.id'), nullable=False)
-    motherboard = relationship('MotherboardMainData')
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

@@ -18,5 +18,5 @@ class CPUCoreEntity(Base):
     integrated_graphics = Column(String)
     simultaneous_multithreading = Column(String)
 
-    cpu_id = Column(Integer, ForeignKey('cpu_main_data.id'))
-    cpu = relationship("CPUMainDataEntity")
+    part_id = Column(Integer, ForeignKey('part.id'), nullable=False)
+    part = relationship("PartEntity")

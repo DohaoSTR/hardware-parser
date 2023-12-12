@@ -184,7 +184,7 @@ class PowerSupplyEntity(BaseEntity):
         self.cast_int_fields()
 
         self.power_supply = self.populate_entity("PowerSupplyData", "part_id")
-        self.power_supply_connectors = self.populate_entity("PowerSupplyConnectors", "power_supply_id")
+        self.power_supply_connectors = self.populate_entity("PowerSupplyConnectors", "part_id")
         self.power_supply_efficiency = self.__populate_efficiency(self.efficiency)
 
         self.power_supply_outputs = self.__populate_output(self.output)

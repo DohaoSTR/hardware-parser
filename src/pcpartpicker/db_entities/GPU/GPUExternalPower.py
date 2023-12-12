@@ -11,5 +11,5 @@ class GPUExternalPowerData(Base):
     interface_count = Column(Integer, default=None)
     pin_count = Column(Integer, default=None)
 
-    gpu_id = Column(Integer, ForeignKey('gpu_main_data.id'), unique=False, nullable=False)
-    gpu = relationship("GPUMainData")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

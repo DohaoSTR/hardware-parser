@@ -11,5 +11,5 @@ class CaseExpansionSlot(Base):
     type = Column(String(250)) 
     riser = Column(String(10))
 
-    case_id = Column(Integer, ForeignKey('case_data.id'), nullable=False)
-    case = relationship("CaseData")
+    part_id = Column(Integer, ForeignKey('part.id'), nullable=False)
+    part = relationship("PartEntity")

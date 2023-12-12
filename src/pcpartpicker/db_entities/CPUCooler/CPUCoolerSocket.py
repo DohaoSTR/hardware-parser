@@ -9,5 +9,5 @@ class CPUCoolerSocket(Base):
     id = Column(Integer, primary_key=True)
     socket = Column(String(250))
     
-    cpu_cooler_id = Column(Integer, ForeignKey('cpu_cooler.id'), nullable=False)
-    cooler = relationship("CPUCoolerData")
+    part_id = Column(Integer, ForeignKey('part.id'), nullable=False)
+    part = relationship("PartEntity")

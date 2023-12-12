@@ -367,17 +367,14 @@ class API:
                     samples_value = value
 
             if fps_combination is FPSCombination.CPU:
-                cpu_key = key
+                cpu_key = values["cpu_key"]
                 gpu_key = 0
             elif fps_combination is FPSCombination.GPU:
                 cpu_key = 0
-                gpu_key = key
+                gpu_key = values["gpu_key"]
             elif fps_combination is FPSCombination.GPU_CPU:
-                for field, value in values.items():
-                    if field == "cpu_key":
-                        cpu_key = value
-                    elif field == "gpu_key":
-                        gpu_key = value
+                gpu_key = values["gpu_key"]
+                cpu_key = values["cpu_key"]
 
             game_settings_value = GameSettings.get_database_value(game_settings.value)
             resolution_value = Resolution.get_database_value(resolution.value)
@@ -439,11 +436,11 @@ class API:
                             game_key = str(filename.split("_")[1])
 
                         dict, index = API.__get_fps_in_game_data(json_data, 
-                                                                              settings_item["Combination"], 
-                                                                              settings_item["Resolution"],
-                                                                              settings_item["GameSettings"],
-                                                                              game_key, 
-                                                                              index)
+                                                                 settings_item["Combination"], 
+                                                                 settings_item["Resolution"],
+                                                                 settings_item["GameSettings"],
+                                                                 game_key, 
+                                                                 index)
                         data.update(dict)
                     except json.JSONDecodeError as e:
                         print(f"Ошибка при чтении файла {file_path}: {e}")

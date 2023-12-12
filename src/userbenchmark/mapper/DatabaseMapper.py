@@ -1,9 +1,13 @@
+import json
+import os
+import time
+
 import logging
 from logging import Logger
 import sys
 import traceback
 
-from sqlalchemy import create_engine
+from sqlalchemy import and_, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 
@@ -39,7 +43,7 @@ class DatabaseMapper:
         if self.session == None:
             self.session.close()
         else:
-            self.logger.warning("UserBenchmarkToDBMapper, __exit__ - session равен None.")
+            self.logger.warning("DatabaseMapper, __exit__ - session равен None.")
 
         self.logger.info("Вызван метод __exit__, ресурсы очищены.")
 
@@ -186,44 +190,81 @@ class DatabaseMapper:
         for part in Part:
             self.add_part_metrics_data(part)
     
+    # почему то добавляются не все данные
     def add_unadded_fps_data(self):
         try:
+            start_time = time.time()
             fps_data = API.get_all_fps_data()
 
+            index = 0
+            errors_items = []
             for item in fps_data:
-                cpu_key = item["cpu_key"]
-                gpu_key = item["gpu_key"]
+                index += 1
 
-                cpu_key_entity = self.session.query(PartsKey).filter_by(key=cpu_key).first()
-                gpu_key_entity = self.session.query(PartsKey).filter_by(key=gpu_key).first()
+                if index % 1000 == 0:
+                    end_time = time.time()
+                    execution_time = end_time - start_time
+                    print(f"{index}; Время: 1000 записей за {execution_time} секунд.")
 
-                cpu = None
-                if cpu_key_entity != None:
-                    cpu = self.session.query(PartEntity).filter_by(id = cpu_key_entity.id).first()
+                if item["samples_value"] == None and item["fps_value"] == None:
+                    pass
+                else:
+                    cpu_key = item["cpu_key"]
+                    gpu_key = item["gpu_key"]
 
-                gpu = None
-                if gpu_key_entity != None:
-                    gpu = self.session.query(PartEntity).filter_by(id = gpu_key_entity.id).first()
+                    cpu_key_entity = None
+                    gpu_key_entity = None
 
-                if cpu or gpu:
-                    game = self.session.query(Game).filter_by(key = item["game_key"]).first()
-                    fps_item = self.session.query(FPSData).filter_by(cpu = cpu, 
-                                                                     gpu = gpu, 
-                                                                     game = game, 
-                                                                     resolution = item["resolution"], 
-                                                                     game_settings = item["game_settings"]).first()
+                    if cpu_key != 0:
+                        cpu_key_entity = self.session.query(PartsKey).filter_by(key=cpu_key).first()
+
+                    if gpu_key != 0:
+                        gpu_key_entity = self.session.query(PartsKey).filter_by(key=gpu_key).first()
                     
-                    if fps_item == None:
-                        entity = FPSData(fps = item["fps_value"],                                   
-                                         samples = item["samples_value"],
-                                         resolution = item["resolution"], 
-                                         game_settings = item["game_settings"],
-                                         cpu = cpu,
-                                         gpu = gpu,
-                                         game = game)
-                        self.session.add(entity)
+                    cpu = None
+                    if cpu_key_entity != None:
+                        cpu = self.session.query(PartEntity).filter_by(id = cpu_key_entity.part_id).first()
 
-            self.session.commit()
+                    gpu = None
+                    if gpu_key_entity != None:
+                        gpu = self.session.query(PartEntity).filter_by(id = gpu_key_entity.part_id).first()
+
+                    if cpu != None or gpu != None:
+                        pass
+                        #game = self.session.query(Game).filter_by(key = int(item["game_key"])).first()
+                        
+                        #entity = FPSData(fps = item["fps_value"],                                   
+                        #                 samples = item["samples_value"],
+                        #                 resolution = item["resolution"], 
+                        #                 game_settings = item["game_settings"],
+                        #                 cpu = cpu,
+                        #                  gpu = gpu,
+                        #                 game = game)
+                        
+                        #fps_item = self.session.query(FPSData).filter(
+                        #    and_(
+                        #        FPSData.cpu == cpu,
+                        #        FPSData.gpu == gpu,
+                        #        FPSData.game == game,
+                        #        FPSData.resolution == item["resolution"],
+                        #        FPSData.game_settings == item["game_settings"]
+                        #    )
+                        #).first()
+
+                        #if fps_item is None:
+                            #self.session.add(entity)
+                    else:
+                        errors_items.append({ "item": item, "cpu": cpu, "gpu": gpu })
+
+            current_directory = os.getcwd()
+            file_path = current_directory + "\\data\\userbenchmark\\errors_items.json"
+            with open(file_path, "w", encoding="utf-8") as json_file:
+                json.dump(errors_items, json_file)
+
+            #self.session.commit()
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"Метод выполнился за {execution_time} секунд.")
             return True
         except Exception as e:
             self.logger.error(f"Класс UserBenchmarkToDBMapper. Метод add_unadded_data. Ошибка - {str(e)}")

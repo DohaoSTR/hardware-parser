@@ -85,7 +85,7 @@ class CPUEntity(BaseEntity):
         db_entity = CPUCoreEntity()
 
         for column_name in db_entity.__table__.columns.keys():
-            if column_name != "id" and column_name != "cpu_id":
+            if column_name != "id" and column_name != "part_id":
                 setattr(db_entity, column_name, getattr(cpu_entity, column_name))
 
         return db_entity

@@ -37,5 +37,5 @@ class GPUOutputsData(Base):
     displayport_1_3_outputs = Column(Integer, default=None)
     dvi_a_outputs = Column(Integer, default=None)
 
-    gpu_id = Column(Integer, ForeignKey('gpu_main_data.id'), unique=True, nullable=False)
-    gpu = relationship("GPUMainData")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True, nullable=False)
+    part = relationship("PartEntity")

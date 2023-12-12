@@ -15,5 +15,5 @@ class PowerSupplyOutput(Base):
     dc_mode = Column(String(10))
     description = Column(String(250))
 
-    power_supply_id = Column(Integer, ForeignKey('power_supply.id'), nullable=False)
-    power_supply = relationship("PowerSupplyData")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=False, nullable=False)
+    part = relationship("PartEntity")

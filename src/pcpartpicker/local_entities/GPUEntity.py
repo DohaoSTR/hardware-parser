@@ -127,8 +127,8 @@ class GPUEntity(BaseEntity):
         self.cast_int_fields()
 
         self.main_data = self.populate_entity("GPUMainData", "part_id")
-        self.outputs_data = self.populate_entity("GPUOutputsData", "gpu_id")
-        self.connect_data = self.populate_entity("GPUConnectData", "gpu_id")
+        self.outputs_data = self.populate_entity("GPUOutputsData", "part_id")
+        self.connect_data = self.populate_entity("GPUConnectData", "part_id")
         self.external_power_data_1 = self.__populate_external_power_entity(self.power_interface_1)
         self.external_power_data_2 = self.__populate_external_power_entity(self.power_interface_2)
         self.multi_interface_data = self.__populate_multi_interface_entities(self.multi_interfaces)

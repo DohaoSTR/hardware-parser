@@ -222,7 +222,7 @@ class MotherboardEntity(BaseEntity):
         self.__populate_m2_entities()
 
         self.main_data = self.populate_entity("MotherboardMainData", "part_id")
-        self.connect_data = self.populate_entity("MotherboardConnectData", "motherboard_id")
+        self.connect_data = self.populate_entity("MotherboardConnectData", "part_id")
 
     def handle_wireless_networking(self, wifi_string):
         match = re.match(r"Wi-Fi (.+)", wifi_string)

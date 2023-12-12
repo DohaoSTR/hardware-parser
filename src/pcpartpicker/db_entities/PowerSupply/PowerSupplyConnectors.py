@@ -17,5 +17,5 @@ class PowerSupplyConnectors(Base):
     sata_connectors = Column(Integer)
     molex_4pin_connectors = Column(Integer)
 
-    power_supply_id = Column(Integer, ForeignKey('power_supply.id'), unique=True)
-    power_supply = relationship("PowerSupplyData")
+    part_id = Column(Integer, ForeignKey('part.id'), unique=True, nullable=False)
+    part = relationship("PartEntity")
