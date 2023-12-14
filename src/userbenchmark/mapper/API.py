@@ -378,7 +378,7 @@ class API:
 
             game_settings_value = GameSettings.get_database_value(game_settings.value)
             resolution_value = Resolution.get_database_value(resolution.value)
-            
+
             data[index] = {
                 "cpu_key": int(cpu_key),
                 "gpu_key": int(gpu_key),

@@ -190,7 +190,6 @@ class DatabaseMapper:
         for part in Part:
             self.add_part_metrics_data(part)
     
-    # почему то добавляются не все данные
     def add_unadded_fps_data(self):
         try:
             start_time = time.time()
@@ -230,38 +229,39 @@ class DatabaseMapper:
                         gpu = self.session.query(PartEntity).filter_by(id = gpu_key_entity.part_id).first()
 
                     if cpu != None or gpu != None:
-                        pass
-                        #game = self.session.query(Game).filter_by(key = int(item["game_key"])).first()
+                        game = self.session.query(Game).filter_by(key = int(item["game_key"])).first()
                         
-                        #entity = FPSData(fps = item["fps_value"],                                   
-                        #                 samples = item["samples_value"],
-                        #                 resolution = item["resolution"], 
-                        #                 game_settings = item["game_settings"],
-                        #                 cpu = cpu,
-                        #                  gpu = gpu,
-                        #                 game = game)
+                        entity = FPSData(fps = item["fps_value"],                                   
+                                         samples = item["samples_value"],
+                                         resolution = item["resolution"], 
+                                         game_settings = item["game_settings"],
+                                         cpu = cpu,
+                                         gpu = gpu,
+                                         game = game)
                         
-                        #fps_item = self.session.query(FPSData).filter(
-                        #    and_(
-                        #        FPSData.cpu == cpu,
-                        #        FPSData.gpu == gpu,
-                        #        FPSData.game == game,
-                        #        FPSData.resolution == item["resolution"],
-                        #        FPSData.game_settings == item["game_settings"]
-                        #    )
-                        #).first()
+                        fps_item = self.session.query(FPSData).filter(
+                            and_(
+                                FPSData.cpu == cpu,
+                                FPSData.gpu == gpu,
+                                FPSData.game == game,
+                                FPSData.resolution == item["resolution"],
+                                FPSData.game_settings == item["game_settings"]
+                            )
+                        ).first()
 
-                        #if fps_item is None:
-                            #self.session.add(entity)
-                    else:
-                        errors_items.append({ "item": item, "cpu": cpu, "gpu": gpu })
+                        if fps_item is None:
+                            self.session.add(entity)
+                        else:
+                            errors_items.append({ "item": item, 
+                                                 "cpu": cpu.id, 
+                                                 "gpu": gpu.id })
 
             current_directory = os.getcwd()
             file_path = current_directory + "\\data\\userbenchmark\\errors_items.json"
             with open(file_path, "w", encoding="utf-8") as json_file:
-                json.dump(errors_items, json_file)
+                json.dump(errors_items, json_file, indent=4)
 
-            #self.session.commit()
+            self.session.commit()
             end_time = time.time()
             execution_time = end_time - start_time
             print(f"Метод выполнился за {execution_time} секунд.")

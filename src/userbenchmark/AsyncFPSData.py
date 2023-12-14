@@ -154,56 +154,58 @@ class AsyncFPSData:
             json.dump(existing_data, json_file, indent=4, ensure_ascii=False)
 
     # получение всех fps данных для игры
-    def __get_fps_data_for_game(self, game_key, gpu_fps_keys, cpu_fps_keys, 
+    def __get_fps_data_for_game(self, 
+                                game_key,
+                                keys,
                                 game_settings: GameSettings, 
                                 resolution: Resolution, 
                                 fps_combination: FPSCombination, last_index = 0):
         fps_data = {}
         
         index = last_index
-        for cpu_key in cpu_fps_keys:
-            for gpu_key in gpu_fps_keys:
-                link = self.__form_fps_link(game_key, gpu_key, cpu_key, game_settings, resolution)  
 
-                result = self.__get_fps_samples_from_page(link)
-                if result is not None:
-                    fps_value, samples_value = result
-                else:
-                    self.logger.info(f"result равен None, __get_fps_data_for_game: {link}")
+        for gpu_key, cpu_key in keys:
+            link = self.__form_fps_link(game_key, gpu_key, cpu_key, game_settings, resolution)  
 
-                if fps_value is not None or samples_value is not None:
-                    fps_value = fps_value.replace(",", ".")
-                    samples_value = samples_value.replace(",", "")
+            result = self.__get_fps_samples_from_page(link)
+            if result is not None:
+                fps_value, samples_value = result
+            else:
+                self.logger.info(f"result равен None, __get_fps_data_for_game: {link}")
 
-                    self.fps_data = {
-                                    "game_key": game_key, "gpu_key": gpu_key, 
-                                    "cpu_key": cpu_key,  "fps_value": float(fps_value), 
-                                    "samples_value": int(samples_value), 
-                                    "game_settings": game_settings.value, 
-                                    "resolution": resolution.value,                                
-                                    }
-                    data = { "gpu_key": int(gpu_key), "cpu_key": int(cpu_key), "fps_value": float(fps_value), "samples_value": int(samples_value) }
-                    fps_data[str(index)] = data
-                        
-                    self.logger.info(f"{index}. Данные - {fps_data[str(index)]}")
-                else:
-                    self.fps_data = {
-                                    "game_key": game_key, "gpu_key": gpu_key, 
-                                    "cpu_key": cpu_key,  "fps_value": None, 
-                                    "samples_value": None, 
-                                    "game_settings": game_settings.value, 
-                                    "resolution": resolution.value,                                
-                                    }
-                    data = { "gpu_key": int(gpu_key), "cpu_key": int(cpu_key), "fps_value": None, "samples_value": None }
-                    fps_data[str(index)] = data
+            if fps_value is not None or samples_value is not None:
+                fps_value = fps_value.replace(",", ".")
+                samples_value = samples_value.replace(",", "")
 
-                    self.logger.info(f"{index}. На странице нет данных.")
+                self.fps_data = {
+                                "game_key": game_key, "gpu_key": gpu_key, 
+                                "cpu_key": cpu_key,  "fps_value": float(fps_value), 
+                                "samples_value": int(samples_value), 
+                                "game_settings": game_settings.value, 
+                                "resolution": resolution.value,                                
+                                }
+                data = { "gpu_key": int(gpu_key), "cpu_key": int(cpu_key), "fps_value": float(fps_value), "samples_value": int(samples_value) }
+                fps_data[str(index)] = data
+                    
+                self.logger.info(f"{index}. Данные - {fps_data[str(index)]}")
+            else:
+                self.fps_data = {
+                                "game_key": game_key, "gpu_key": gpu_key, 
+                                "cpu_key": cpu_key,  "fps_value": None, 
+                                "samples_value": None, 
+                                "game_settings": game_settings.value, 
+                                "resolution": resolution.value,                                
+                                }
+                data = { "gpu_key": int(gpu_key), "cpu_key": int(cpu_key), "fps_value": None, "samples_value": None }
+                fps_data[str(index)] = data
 
-                self.logger.info(f"Ссылка: {link}")
-                
-                index = index + 1
-                if index % 100 == 0:
-                    AsyncFPSData.save_fps_data_to_json(game_key, game_settings, resolution, fps_combination, fps_data)
+                self.logger.info(f"{index}. На странице нет данных.")
+
+            self.logger.info(f"Ссылка: {link}")
+            
+            index = index + 1
+            if index % 100 == 0:
+                AsyncFPSData.save_fps_data_to_json(game_key, game_settings, resolution, fps_combination, fps_data)
 
         AsyncFPSData.save_fps_data_to_json(game_key, game_settings, resolution, fps_combination, fps_data)
         return fps_data
@@ -219,30 +221,29 @@ class AsyncFPSData:
                 last_index = 0
                 
                 if missing_keys == None:
-                    future = executor.submit(self.__get_fps_data_for_game, game_key, gpu_fps_keys, cpu_fps_keys, game_settings, resolution, fps_combination, last_index)
+                    missing_keys = []
+
+                    if fps_combination == FPSCombination.GPU_CPU:
+                        missing_keys = set((gpu_key, cpu_key) for cpu_key in cpu_fps_keys for gpu_key in gpu_fps_keys)
+                    if fps_combination == FPSCombination.CPU:
+                        missing_keys = [(0, key) for key in cpu_fps_keys]
+                    if fps_combination == FPSCombination.GPU:
+                        missing_keys = [(key, 0) for key in gpu_fps_keys]
+                        
+                    future = executor.submit(self.__get_fps_data_for_game, game_key, missing_keys, game_settings, resolution, fps_combination, last_index)
                     futures.append(future)
                 elif missing_keys == [] or len(missing_keys) == 0:
                     pass
                 else:
-                    if fps_combination == FPSCombination.GPU:
-                        gpu_fps_keys = missing_keys  
-                        cpu_fps_keys = [0]
-                    elif fps_combination == FPSCombination.CPU:
-                        cpu_fps_keys = missing_keys
-                        gpu_fps_keys = [0]
-                    elif fps_combination == FPSCombination.GPU_CPU:
-                        gpu_fps_keys = []
-                        cpu_fps_keys = []
-
-                        for key_item in missing_keys:
-                            if len(key_item) == 2:
-                                gpu_key, cpu_key = key_item
-                                gpu_fps_keys.append(gpu_key)
-                                cpu_fps_keys.append(cpu_key)
-
                     last_index = AsyncFPSData.get_last_index_from_json_file(game_key, fps_combination, game_settings, resolution) + 1
 
-                    future = executor.submit(self.__get_fps_data_for_game, game_key, gpu_fps_keys, cpu_fps_keys, game_settings, resolution, fps_combination, last_index)
+                    future = executor.submit(self.__get_fps_data_for_game, 
+                                             game_key, 
+                                             missing_keys, 
+                                             game_settings, 
+                                             resolution, 
+                                             fps_combination, 
+                                             last_index)
                     futures.append(future)
 
             event.set()
@@ -310,8 +311,11 @@ class AsyncFPSData:
             
             key_name = FPSCombination.KEY_MAPPING.get(combination)
             part_keys = [entry[key_name] for entry in fps_data.values()]
-
-            missing_keys = [key for key in handled_keys if key not in part_keys]
+            
+            if FPSCombination.CPU:
+                missing_keys = [(0, key) for key in handled_keys if key not in part_keys]
+            if FPSCombination.GPU:
+                missing_keys = [(key, 0) for key in handled_keys if key not in part_keys]
 
             return missing_keys
 
