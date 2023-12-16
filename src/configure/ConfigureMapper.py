@@ -43,7 +43,8 @@ from src.pcpartpicker.DatabaseAPI import DatabaseAPI as PcPartPickerDatabaseAPI
 from src.pcpartpicker.db_entities.PartEntity import PartEntity as PcPartPickerPartEntity
 from src.userbenchmark.mapper.db_entities.PartEntity import PartEntity as UserBenchmarkPartEntity
 from src.userbenchmark.mapper.db_entities.Metric import Metric
-#from src.userbenchmark.mapper.db_entities.FPSData import FPSData
+
+from src.userbenchmark.mapper.db_entities.FPSData import FPSData
 
 from src.pcpartpicker.db_entities.PriceEntity import PriceEntity
 
@@ -67,28 +68,23 @@ class MainPart:
 
 @dataclass
 class CPU(MainPart):
-    fps_data: List[int]
+    fps_data: List[FPSData]
 
 @dataclass
 class GPU(MainPart):
-    fps_data: List[int]
+    fps_data: List[FPSData]
 
-# пройтись по каждой комплектующей и отсеять те где нету цены
-# кароче собираем по 5 комплектующим (gpu, cpu, memory, ssd, hdd)
 class ConfigureMapper:
     def __init__(self):
-        self.api = PcPartPickerDatabaseAPI()
+        self.pcpartpicker_api = PcPartPickerDatabaseAPI()
         self.userbenchmark_api = UserBenchmarkDatabaseAPI()
 
-        self.ram_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("RAM")
-        self.cpu_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("CPU")
-        self.gpu_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("GPU")
-        self.ssd_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("SSD")
-        self.hdd_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("HDD")
+    def get_fps_data(self) -> List[FPSData]:
+        return self.userbenchmark_api.session(FPSData).all()
 
     def get_ram_main_parts(self) -> List[MainPart]:
         entities = []
-        for ram_tuple in self.ram_entitities:
+        for ram_tuple in self.get_ram_entities:
             pcpartpicker_id = ram_tuple[0].id
             userbenchmark_id = ram_tuple[1].id
             rank = ram_tuple[1].rank
@@ -110,7 +106,7 @@ class ConfigureMapper:
     
     def get_ssd_main_parts(self) -> List[MainPart]:
         entities = []
-        for ssd_tuple in self.ssd_entitities:
+        for ssd_tuple in self.get_ssd_entities:
             pcpartpicker_id = ssd_tuple[0].id
             userbenchmark_id = ssd_tuple[1].id
             rank = ssd_tuple[1].rank
@@ -132,7 +128,7 @@ class ConfigureMapper:
     
     def get_hdd_main_parts(self) -> List[MainPart]:
         entities = []
-        for hdd_tuple in self.hdd_entitities:
+        for hdd_tuple in self.get_hdd_entities:
             pcpartpicker_id = hdd_tuple[0].id
             userbenchmark_id = hdd_tuple[1].id
             rank = hdd_tuple[1].rank
@@ -152,199 +148,214 @@ class ConfigureMapper:
                                         pcpartpicker_id))
         return entities 
     
-    def get_cpu_main_parts(self) -> List[MainPart]:
+    def get_cpu_main_parts(self) -> List[CPU]:
         entities = []
-        for cpu_tuple in self.cpu_entitities:
+        for cpu_tuple in self.get_cpu_entities:
             pcpartpicker_id = cpu_tuple[0].id
             userbenchmark_id = cpu_tuple[1].id
             rank = cpu_tuple[1].rank
             benchmark = cpu_tuple[1].benchmark
             samples = cpu_tuple[1].samples
 
-            metric = self.userbenchmark_api.session.query(Metric).filter(Metric.part_id == userbenchmark_id).first()
+            fps_data = self.userbenchmark_api.session.query(FPSData).filter(FPSData.cpu_id == userbenchmark_id).all()
 
+            metric = self.userbenchmark_api.session.query(Metric).filter(Metric.part_id == userbenchmark_id).first()
             if metric != None:
-                entities.append(MainPart(metric.gaming_percentage, 
+                entities.append(CPU(metric.gaming_percentage, 
                                         metric.desktop_percentage, 
                                         metric.workstation_percentage,
                                         rank,
                                         benchmark, 
                                         samples,
                                         userbenchmark_id,
-                                        pcpartpicker_id))
+                                        pcpartpicker_id,
+                                        fps_data))
         return entities 
     
-    def get_gpu_main_parts(self) -> List[MainPart]:
+    def get_gpu_main_parts(self) -> List[GPU]:
         entities = []
-        for gpu_tuple in self.gpu_entitities:
+        for gpu_tuple in self.get_gpu_entities:
             pcpartpicker_id = gpu_tuple[0].id
             userbenchmark_id = gpu_tuple[1].id
             rank = gpu_tuple[1].rank
             benchmark = gpu_tuple[1].benchmark
             samples = gpu_tuple[1].samples
+            fps_data = self.userbenchmark_api.session.query(FPSData).filter(FPSData.gpu_id == userbenchmark_id).all()
 
             metric = self.userbenchmark_api.session.query(Metric).filter(Metric.part_id == userbenchmark_id).first()
 
             if metric != None:
-                entities.append(MainPart(metric.gaming_percentage, 
+                entities.append(GPU(metric.gaming_percentage, 
                                         metric.desktop_percentage, 
                                         metric.workstation_percentage,
                                         rank,
                                         benchmark, 
                                         samples,
                                         userbenchmark_id,
-                                        pcpartpicker_id))
+                                        pcpartpicker_id,
+                                        fps_data))
         return entities 
 
     ###
     def get_parts_with_price(self, part_name: str):
-        subquery = self.api.session.query(1).filter(PriceEntity.part_id == PcPartPickerPartEntity.id).exists()
-        query = self.api.session.query(PcPartPickerPartEntity).filter(subquery)
+        subquery = self.pcpartpicker_api.session.query(1).filter(PriceEntity.part_id == PcPartPickerPartEntity.id).exists()
+        query = self.pcpartpicker_api.session.query(PcPartPickerPartEntity).filter(subquery)
         parts = query.filter_by(part_type = part_name).all()
 
         return parts
     ###
     
     ###
-    def init_case(self):
-        self.case_entitities: List[(PcPartPickerPartEntity,
+    def get_case_entities(self):
+        case_entitities: List[(PcPartPickerPartEntity,
                                     CaseData, 
                                     List[CaseDriveBay], 
                                     List[CaseExpansionSlot], 
                                     List[CaseMotherboardFormFactor])] = []
         for case_part in self.get_parts_with_price("case"):
-            case_data = self.api.session.query(CaseData).filter(CaseData.part_id == case_part.id).first()
-            case_drive_bay = self.api.session.query(CaseDriveBay).filter(CaseDriveBay.part_id == case_part.id).all()
-            case_expansion_slot = self.api.session.query(CaseExpansionSlot).filter(CaseExpansionSlot.part_id == case_part.id).all()
-            case_motherboard_form_factor = self.api.session.query(CaseMotherboardFormFactor).filter(CaseMotherboardFormFactor.part_id == case_part.id).all()
-            self.case_entitities.append((case_part, case_data, case_drive_bay, case_expansion_slot, case_motherboard_form_factor))
+            case_data = self.pcpartpicker_api.session.query(CaseData).filter(CaseData.part_id == case_part.id).first()
+            case_drive_bay = self.pcpartpicker_api.session.query(CaseDriveBay).filter(CaseDriveBay.part_id == case_part.id).all()
+            case_expansion_slot = self.pcpartpicker_api.session.query(CaseExpansionSlot).filter(CaseExpansionSlot.part_id == case_part.id).all()
+            case_motherboard_form_factor = self.pcpartpicker_api.session.query(CaseMotherboardFormFactor).filter(CaseMotherboardFormFactor.part_id == case_part.id).all()
+            case_entitities.append((case_part, case_data, case_drive_bay, case_expansion_slot, case_motherboard_form_factor))
+        return case_entitities
         
     ###
-    def init_case_fan(self):
-        self.case_fan_entitities: List[(PcPartPickerPartEntity, 
+    def get_case_fan_entities(self):
+        case_fan_entitities: List[(PcPartPickerPartEntity, 
                                         CaseFanData, 
                                         List[CaseFanConnector])] = []
         for case_fan_part in self.get_parts_with_price("case-fan"):
-            case_fan_data = self.api.session.query(CaseFanData).filter(CaseFanData.part_id == case_fan_part.id).first()
-            case_fan_connector = self.api.session.query(CaseFanConnector).filter(CaseFanConnector.part_id == case_fan_part.id).all()
-            self.case_fan_entitities.append((case_fan_part, case_fan_data, case_fan_connector))
+            case_fan_data = self.pcpartpicker_api.session.query(CaseFanData).filter(CaseFanData.part_id == case_fan_part.id).first()
+            case_fan_connector = self.pcpartpicker_api.session.query(CaseFanConnector).filter(CaseFanConnector.part_id == case_fan_part.id).all()
+            case_fan_entitities.append((case_fan_part, case_fan_data, case_fan_connector))
+        return case_fan_entitities
         
     ###
-    def init_power_supply(self):
-        self.power_supply_entitities: List[(PcPartPickerPartEntity, 
+    def get_power_supply_entities(self):
+        power_supply_entitities: List[(PcPartPickerPartEntity, 
                                             PowerSupplyData, 
                                             List[PowerSupplyConnectors], 
                                             List[PowerSupplyOutput])] = []
         for power_supply_part in self.get_parts_with_price("power-supply"):
-            power_supply_data = self.api.session.query(PowerSupplyData).filter(PowerSupplyData.part_id == power_supply_part.id).first()
-            power_supply_connectors = self.api.session.query(PowerSupplyConnectors).filter(PowerSupplyConnectors.part_id == power_supply_part.id).all()
-            power_supply_output = self.api.session.query(PowerSupplyOutput).filter(PowerSupplyOutput.part_id == power_supply_part.id).all()
-            self.power_supply_entitities.append((power_supply_part, power_supply_data, power_supply_connectors, power_supply_output))
+            power_supply_data = self.pcpartpicker_api.session.query(PowerSupplyData).filter(PowerSupplyData.part_id == power_supply_part.id).first()
+            power_supply_connectors = self.pcpartpicker_api.session.query(PowerSupplyConnectors).filter(PowerSupplyConnectors.part_id == power_supply_part.id).all()
+            power_supply_output = self.pcpartpicker_api.session.query(PowerSupplyOutput).filter(PowerSupplyOutput.part_id == power_supply_part.id).all()
+            power_supply_entitities.append((power_supply_part, power_supply_data, power_supply_connectors, power_supply_output))
+        return power_supply_entitities
         
     ###
-    def init_motherboard(self):
-        self.motherboard_entitities: List[(PcPartPickerPartEntity, 
+    def get_motherboard_entities(self):
+        motherboard_entitities: List[(PcPartPickerPartEntity, 
                                            MotherboardMainData, 
                                            List[MotherboardMemorySpeed], 
                                            List[MotherboardSocket], 
                                            List[MotherboardM2Slots], 
                                            List[MotherboardConnectData])] = []
         for motherboard_part in self.get_parts_with_price("motherboard"):
-            motherboard_data = self.api.session.query(MotherboardMainData).filter(MotherboardMainData.part_id == motherboard_part.id).first()
-            motherboard_memory_speed = self.api.session.query(MotherboardMemorySpeed).filter(MotherboardMemorySpeed.part_id == motherboard_part.id).all()
-            motherboard_socket = self.api.session.query(MotherboardSocket).filter(MotherboardSocket.part_id == motherboard_part.id).all()
-            motherboard_m2_slots = self.api.session.query(MotherboardM2Slots).filter(MotherboardM2Slots.part_id == motherboard_part.id).all()
-            motherboard_connect_data = self.api.session.query(MotherboardConnectData).filter(MotherboardConnectData.part_id == motherboard_part.id).all()
-            self.motherboard_entitities.append((motherboard_part, 
+            motherboard_data = self.pcpartpicker_api.session.query(MotherboardMainData).filter(MotherboardMainData.part_id == motherboard_part.id).first()
+            motherboard_memory_speed = self.pcpartpicker_api.session.query(MotherboardMemorySpeed).filter(MotherboardMemorySpeed.part_id == motherboard_part.id).all()
+            motherboard_socket = self.pcpartpicker_api.session.query(MotherboardSocket).filter(MotherboardSocket.part_id == motherboard_part.id).all()
+            motherboard_m2_slots = self.pcpartpicker_api.session.query(MotherboardM2Slots).filter(MotherboardM2Slots.part_id == motherboard_part.id).all()
+            motherboard_connect_data = self.pcpartpicker_api.session.query(MotherboardConnectData).filter(MotherboardConnectData.part_id == motherboard_part.id).all()
+            motherboard_entitities.append((motherboard_part, 
                                                 motherboard_data, 
                                                 motherboard_memory_speed, 
                                                 motherboard_socket, 
                                                 motherboard_m2_slots, 
                                                 motherboard_connect_data))
+        return motherboard_entitities
         
     ###
-    def init_gpu(self):
-        self.gpu_entitities: List[(PcPartPickerPartEntity, 
+    def get_gpu_entities(self):
+        gpu_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("GPU")
+        gpu_entitities: List[(PcPartPickerPartEntity, 
                                    UserBenchmarkPartEntity,
                                    GPUMainData, 
                                    List[GPUConnectData], 
                                    List[GPUExternalPowerData])] = []
-        for gpu_part, userbenchmark_part in self.gpu_parts:
-            gpu_main_data = self.api.session.query(CPUMainDataEntity).filter(CPUMainDataEntity.part_id == gpu_part.id).first()
-            gpu_connect_data = self.api.session.query(GPUConnectData).filter(GPUConnectData.part_id == gpu_part.id).all()
-            gpu_external_power = self.api.session.query(GPUExternalPowerData).filter(GPUExternalPowerData.part_id == gpu_part.id).all()
-            self.gpu_entitities.append((gpu_part, 
+        for gpu_part, userbenchmark_part in gpu_parts:
+            gpu_main_data = self.pcpartpicker_api.session.query(CPUMainDataEntity).filter(CPUMainDataEntity.part_id == gpu_part.id).first()
+            gpu_connect_data = self.pcpartpicker_api.session.query(GPUConnectData).filter(GPUConnectData.part_id == gpu_part.id).all()
+            gpu_external_power = self.pcpartpicker_api.session.query(GPUExternalPowerData).filter(GPUExternalPowerData.part_id == gpu_part.id).all()
+            gpu_entitities.append((gpu_part, 
                                         userbenchmark_part,
                                         gpu_main_data,
                                         gpu_connect_data,
                                         gpu_external_power))
+        return gpu_entitities
         
     ###
-    def init_cpu(self):
-        self.cpu_entitities: List[(PcPartPickerPartEntity, 
+    def get_cpu_entities(self):
+        cpu_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("CPU")
+        cpu_entitities: List[(PcPartPickerPartEntity, 
                                    UserBenchmarkPartEntity,
                                    CPUMainDataEntity, 
                                    CPUCoreEntity)] = []
-        for cpu_part, userbenchmark_part in self.cpu_parts:
-            cpu_main_data = self.api.session.query(CPUMainDataEntity).filter(CPUMainDataEntity.part_id == cpu_part.id).first()
-            cpu_core = self.api.session.query(CPUCoreEntity).filter(CPUCoreEntity.part_id == cpu_part.id).first()
-            self.cpu_entitities.append((cpu_part, 
-                                        userbenchmark_part,
-                                        cpu_main_data,
-                                        cpu_core))
+        for cpu_part, userbenchmark_part in cpu_parts:
+            cpu_main_data = self.pcpartpicker_api.session.query(CPUMainDataEntity).filter(CPUMainDataEntity.part_id == cpu_part.id).first()
+            cpu_core = self.pcpartpicker_api.session.query(CPUCoreEntity).filter(CPUCoreEntity.part_id == cpu_part.id).first()
+            cpu_entitities.append((cpu_part, 
+                                   userbenchmark_part,
+                                   cpu_main_data,
+                                   cpu_core))
+        return cpu_entitities
         
     ###
-    def init_ram(self):
-        self.ram_entitities: List[(PcPartPickerPartEntity, 
+    def get_ram_entities(self):
+        ram_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("RAM")
+        ram_entitities: List[(PcPartPickerPartEntity, 
                                    UserBenchmarkPartEntity,
                                    MemoryMainData, 
                                    MemoryCharacteristics)] = []
-        for ram_part, userbenchmark_part in self.ram_parts:
-            memory_main_data = self.api.session.query(MemoryMainData).filter(MemoryMainData.part_id == ram_part.id).first()
-            memory_characteristics = self.api.session.query(MemoryCharacteristics).filter(MemoryCharacteristics.part_id == ram_part.id).first()
-            self.ram_entitities.append((ram_part, 
+        for ram_part, userbenchmark_part in ram_parts:
+            memory_main_data = self.pcpartpicker_api.session.query(MemoryMainData).filter(MemoryMainData.part_id == ram_part.id).first()
+            memory_characteristics = self.pcpartpicker_api.session.query(MemoryCharacteristics).filter(MemoryCharacteristics.part_id == ram_part.id).first()
+            ram_entitities.append((ram_part, 
                                         userbenchmark_part,
                                         memory_main_data,
                                         memory_characteristics))
+        return ram_entitities
         
     ###
-    def init_ssd(self):
-        self.ssd_entitities: List[(PcPartPickerPartEntity, 
+    def get_ssd_entities(self):
+        ssd_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("SSD")
+        ssd_entitities: List[(PcPartPickerPartEntity, 
                                    UserBenchmarkPartEntity,
                                    SSD)] = []
-        for ssd_part, userbenchmark_part in self.ssd_parts:
-            ssd = self.api.session.query(SSD).filter(SSD.part_id == ssd_part.id).first()
-            self.ssd_entitities.append((ssd_part,
+        for ssd_part, userbenchmark_part in ssd_parts:
+            ssd = self.pcpartpicker_api.session.query(SSD).filter(SSD.part_id == ssd_part.id).first()
+            ssd_entitities.append((ssd_part,
                                         userbenchmark_part, 
                                         ssd))
+        return ssd_entitities
         
     ###
-    def init_hdd(self):
-        self.hdd_entitities: List[(PcPartPickerPartEntity, 
+    def get_hdd_entities(self):
+        hdd_parts: List[(PcPartPickerPartEntity, UserBenchmarkPartEntity)] = ConfigureMapper.get_concrent_compatible_parts("HDD")
+        hdd_entitities: List[(PcPartPickerPartEntity, 
                                    UserBenchmarkPartEntity,
                                    HDD)] = []
-        for hdd_part, userbenchmark_part in self.hdd_parts:
-            hdd = self.api.session.query(HDD).filter(HDD.part_id == hdd_part.id).first()
-            self.hdd_entitities.append((hdd_part, 
+        for hdd_part, userbenchmark_part in hdd_parts:
+            hdd = self.pcpartpicker_api.session.query(HDD).filter(HDD.part_id == hdd_part.id).first()
+            hdd_entitities.append((hdd_part, 
                                         userbenchmark_part,
                                         hdd))
+        return hdd_entitities
         
     ###
-    def init_cpu_cooler(self):
-        self.cpu_cooler_entitities: List[(PcPartPickerPartEntity, 
+    def get_cpu_cooler_entities(self):
+        cpu_cooler_entitities: List[(PcPartPickerPartEntity, 
                                           CPUCoolerData, 
                                           List[CPUCoolerSocket])] = []
         for cpu_cooler_part in self.get_parts_with_price("cpu-cooler"):
-            cpu_cooler_data = self.api.session.query(CPUCoolerData).filter(CPUCoolerData.part_id == cpu_cooler_part.id).first()
-            cpu_cooler_socket = self.api.session.query(CPUCoolerSocket).filter(CPUCoolerSocket.part_id == cpu_cooler_part.id).all()
-            self.cpu_cooler_entitities.append((cpu_cooler_part, 
+            cpu_cooler_data = self.pcpartpicker_api.session.query(CPUCoolerData).filter(CPUCoolerData.part_id == cpu_cooler_part.id).first()
+            cpu_cooler_socket = self.pcpartpicker_api.session.query(CPUCoolerSocket).filter(CPUCoolerSocket.part_id == cpu_cooler_part.id).all()
+            cpu_cooler_entitities.append((cpu_cooler_part, 
                                                cpu_cooler_data, 
                                                cpu_cooler_socket))
+        return cpu_cooler_entitities
 
-
-
-
-    ###
     def get_concrent_compatible_parts(part_type: str):
         engine = create_engine(f"mysql://{USER_NAME}:{PASSWORD}@{HOST}/{DATABASE_NAME}?charset=utf8mb4")
         Session = sessionmaker(bind=engine)
@@ -417,6 +428,7 @@ class ConfigureMapper:
         session.close()
         return entities
 
+class ConfigureCompatibile:
     # проблемы cpu
     # нету tdp у cooler
     # нету типа памяти у cpu

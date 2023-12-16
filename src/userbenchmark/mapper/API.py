@@ -25,7 +25,7 @@ from .local_entities.SSD import SSD
 from .local_entities.RAM import RAM
 
 from .db_entities.PartEntity import PartEntity
-from .db_entities.Game import Game
+from .db_entities.Games import Games
 from .db_entities.Metric import Metric
 
 SUMMARY_DATA_RELATIVE_PATH = "\\data\\userbenchmark\\summary_data\\"
@@ -105,7 +105,7 @@ class API:
 
         data = []
         for key, value in game_keys.items():
-            data.append(Game(key = key, name = value))
+            data.append(Games(key = key, name = value))
 
         return data
     #

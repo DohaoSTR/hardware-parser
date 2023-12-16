@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey, Enum
 from sqlalchemy.dialects.mysql import DOUBLE
 from sqlalchemy.orm import relationship
 
+from .Games import Games
 from ..BaseSQLAlchemy import Base
 
 class FPSData(Base):
@@ -16,6 +17,7 @@ class FPSData(Base):
     cpu_id = Column(Integer, ForeignKey('parts.id'))
     gpu_id = Column(Integer, ForeignKey('parts.id'))
     game_key = Column(Integer, ForeignKey('games.key'))
+
     cpu = relationship("PartEntity", foreign_keys=[cpu_id])
     gpu = relationship("PartEntity", foreign_keys=[gpu_id])
-    game = relationship("Game", foreign_keys=[game_key])
+    game = relationship("Games", foreign_keys=[game_key])

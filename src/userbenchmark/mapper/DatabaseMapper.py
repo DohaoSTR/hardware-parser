@@ -19,7 +19,7 @@ from .db_entities.PartsKey import PartsKey
 from .db_entities.PartsCompareKey import PartsCompareKey
 from .db_entities.Metric import Metric
 from .db_entities.FPSData import FPSData
-from .db_entities.Game import Game
+from .db_entities.Games import Games
 
 HOST = "localhost"
 USER_NAME = "root"
@@ -229,7 +229,7 @@ class DatabaseMapper:
                         gpu = self.session.query(PartEntity).filter_by(id = gpu_key_entity.part_id).first()
 
                     if cpu != None or gpu != None:
-                        game = self.session.query(Game).filter_by(key = int(item["game_key"])).first()
+                        game = self.session.query(Games).filter_by(key = int(item["game_key"])).first()
                         
                         entity = FPSData(fps = item["fps_value"],                                   
                                          samples = item["samples_value"],
