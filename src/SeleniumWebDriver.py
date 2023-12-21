@@ -31,7 +31,8 @@ class SeleniumWebDriver:
         port: int = None, 
         user_agent: str = STANDARD_USER_AGENT, 
         headless: bool = False, 
-        download_directory: str = None
+        download_directory: str = None,
+        is_images_load: bool = False
     ) -> WebDriver:
         chrome_options = webdriver.ChromeOptions()
 
@@ -50,6 +51,10 @@ class SeleniumWebDriver:
         chrome_options.add_argument("--disable-blink-features")
         chrome_options.add_argument("ignore-certificate-errors")
         chrome_options.add_argument("--ignore-certificate-errors-spki-list")
+
+        if is_images_load == True:
+            prefs = {"profile.managed_default_content_settings.images": 2}
+            chrome_options.add_experimental_option("prefs", prefs)
 
         chrome_options.add_argument('log-level=3')
 

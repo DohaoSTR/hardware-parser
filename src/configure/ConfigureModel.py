@@ -87,7 +87,7 @@ class ConfigureModel:
     # надо смотреть по комбинации cpu, gpu и в среднем
     # average_cpu_metric
     # average_gpu_metric
-    # average_gpu_cpu_metric
+    # average_gpu_cpu_metric    
     # average_metric
     def get_game_metrics(self,
                          cpu_entity: CPU,

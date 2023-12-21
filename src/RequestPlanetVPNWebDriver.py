@@ -1,5 +1,5 @@
 import logging
-from .Misc import is_host_reachable
+from .misc import is_host_reachable
 from .PlanetVPNManager import PlanetVPNManager
 
 from logging import Logger
