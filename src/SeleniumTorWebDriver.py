@@ -68,7 +68,8 @@ class SeleniumTorWebDriver:
             self.remove_port(self.current_port)
 
     def get_driver(self,
-                   is_images_load: bool = False):
+                   is_images_load: bool = True,
+                   headless: bool = False):
         driver = None
         user_data = None
         while True:
@@ -87,8 +88,11 @@ class SeleniumTorWebDriver:
                 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
                 chrome_options.add_argument("--disable-features=CSSGridLayout")
                 chrome_options.add_argument("--blink-settings=imagesEnabled=false")
+                
+                if headless == True:
+                    chrome_options.add_argument('--headless') 
 
-                if is_images_load == True:
+                if is_images_load == False:
                     prefs = {"profile.managed_default_content_settings.images": 2}
                     chrome_options.add_experimental_option("prefs", prefs)
 
@@ -96,9 +100,5 @@ class SeleniumTorWebDriver:
                 return driver
             except selenium.common.exceptions.WebDriverException as e:
                 self.logger.error(f"Ошибка WebDriverException обработана.")
-
-                if driver != None and user_data != None:
-                    self.clear_web_drivers(driver)
-                    driver = None
-
+                self.remove_port(self.current_port)
                 continue
