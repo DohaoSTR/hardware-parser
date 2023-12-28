@@ -2,6 +2,7 @@ import json
 import logging
 import math
 import os
+import time
 
 from bs4 import BeautifulSoup
 
@@ -35,6 +36,9 @@ class PriceParser:
         self.logger.info(f"Значение исключения: {exc_value}")
         self.logger.info(f"Объект traceback: {traceback}")
 
+        if self.web_driver != None:
+            self.selenium_manager.clear_web_drivers(self.web_driver)
+
         self.logger.info("Вызван метод __exit__, ресурсы очищены.")
 
     def __enter__(self):
@@ -46,9 +50,14 @@ class PriceParser:
         retries = 0
         while retries < 5:
             self.web_driver.get(link)
+            
+            time.sleep(3)
+            self.web_driver.execute_script("window.scrollBy(0, 500);")
+            
             if self.web_driver.title == "Ошибка 404: страница не найдена":
                 self.logger.info(f"Link: {link}. Ошибка 404: страница не найдена.")
                 self.selenium_manager.remove_port(self.selenium_manager.current_port)
+                self.selenium_manager.clear_web_drivers(self.web_driver)
                 self.web_driver = self.selenium_manager.get_driver(True, True)
                 continue
 
@@ -56,11 +65,13 @@ class PriceParser:
                 self.logger.info(f"Link: {link}. Ошибка 429. Слишком частые запросы.")
                 self.selenium_manager.remove_port(self.selenium_manager.current_port)
                 self.web_driver = self.selenium_manager.get_driver(True, True)
+                self.selenium_manager.clear_web_drivers(self.web_driver)
                 continue
 
             if self.web_driver.title == "":
                 self.logger.info(f"Link: {link}. title == 0")
                 self.selenium_manager.remove_port(self.selenium_manager.current_port)
+                self.selenium_manager.clear_web_drivers(self.web_driver)
                 self.web_driver = self.selenium_manager.get_driver(True, True)
                 continue
 
@@ -69,6 +80,7 @@ class PriceParser:
             if html == None or len(html) == 0:
                 self.logger.info(f"Link: {link}. title == 0")
                 self.selenium_manager.remove_port(self.selenium_manager.current_port)
+                self.selenium_manager.clear_web_drivers(self.web_driver)
                 self.web_driver = self.selenium_manager.get_driver(True)
                 continue
 
@@ -218,3 +230,6 @@ class PriceParser:
                                                        city_code, 
                                                        city_name)
                 self.save_data(category_data)
+
+    def refresh_all_data_mapper(self):
+        pass

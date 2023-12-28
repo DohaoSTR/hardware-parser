@@ -15,4 +15,17 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 mapper = DatabaseMapper(logger)
-mapper.add_unadded_fps_data()
+
+def add_all_data_without_fps():
+    mapper.add_parts()
+    mapper.add_games()
+    mapper.add_parts_keys()
+    mapper.add_compare_keys()
+    mapper.add_metrics()
+    mapper.add_all_parts()
+
+def add_fps_data():
+    mapper.add_unadded_fps_data()
+
+add_all_data_without_fps()
+add_fps_data()

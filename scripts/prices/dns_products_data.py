@@ -1,7 +1,7 @@
 import logging
 import time
 
-from src.prices.dns.UIDParser import UIDParser
+from src.prices.dns.ProductsParser import ProductsParser
 
 LOG_PATH = "data\\logs\\dns_uid_parser.log"
 
@@ -15,14 +15,14 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-parser = UIDParser(logger)
+parser = ProductsParser(logger)
 with parser:
     start_time = time.time()
 
-    data = parser.get_product_data("https://www.dns-shop.ru/product/c3c60e33a1982ff1/processor-amd-fx-4300-box/")
-    print(data)
-    print(len(data))
-    
+    #data = parser.get_product_data("https://www.dns-shop.ru/product/001858dd302ced20/240-gb-ssd-m2-nakopitel-wd-green-sn350-wds240g2g0c/")
+    #print(data)
+    parser.get_all_data()
+
     end_time = time.time()
     execution_time = end_time - start_time
     print(f"Метод выполнился за {execution_time:.2f} секунд")

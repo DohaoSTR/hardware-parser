@@ -21,10 +21,10 @@ from .db_entities.Metric import Metric
 from .db_entities.FPSData import FPSData
 from .db_entities.Games import Games
 
-HOST = "localhost"
-USER_NAME = "root"
-PASSWORD = "root"
-DATABASE_NAME = "userbenchmark_data"
+HOST = "a0871451.xsph.ru"
+USER_NAME = "a0871451_userbenchmark"
+PASSWORD = "ZqK1pKvjxIFXj2DL8us1"
+DATABASE_NAME = "a0871451_userbenchmark"
 
 class DatabaseMapper:
     def __init__(self, logger: Logger = None):

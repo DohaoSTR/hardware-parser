@@ -20,10 +20,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 
-HOST = "localhost"
-USER_NAME = "root"
-PASSWORD = "root"
-DATABASE_NAME = "pcpartpicker_data"
+HOST = "a0871451.xsph.ru"
+USER_NAME = "a0871451_pcpartpicker"
+PASSWORD = "LwWCBuE3VVdHDnTXs6hG"
+DATABASE_NAME = "a0871451_pcpartpicker"
 
 class DatabaseMapper:
     def __init__(self, logger: Logger = None):

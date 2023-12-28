@@ -113,4 +113,4 @@ class Products:
         with open(path, 'r', encoding="utf-8") as file:
             links_to_parse = json.load(file)
 
-        return links_to_parse
+        return links_to_parse 
