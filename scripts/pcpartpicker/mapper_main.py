@@ -36,5 +36,6 @@ def add_all_parts_data():
     db.add_all_cpu_cooler_data()
     db.add_all_power_supply()
 
-add_all_main_data()
-add_all_parts_data()
+#add_all_main_data()
+#add_all_parts_data()
+db.add_all_image_data()

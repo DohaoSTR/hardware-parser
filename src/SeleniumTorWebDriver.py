@@ -63,9 +63,6 @@ class SeleniumTorWebDriver:
             return False
 
     def clear_web_drivers(self, web_driver: WebDriver):
-        #selenium_web_driver = SeleniumWebDriver(self.logger)
-        #selenium_web_driver.clear_web_drivers(web_driver)
-
         web_driver.close()
 
         if self.current_port != None:

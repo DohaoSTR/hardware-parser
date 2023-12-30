@@ -18,7 +18,7 @@ parser = PriceParser(logger)
 with parser:
     start_time = time.time()
 
-    parser.get_all_data()
+    data = parser.parse_all_data()
     
     end_time = time.time()
     execution_time = end_time - start_time

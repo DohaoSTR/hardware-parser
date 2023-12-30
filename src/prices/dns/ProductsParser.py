@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import re
-import time
 
 from bs4 import BeautifulSoup
 
@@ -14,6 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchWindowException
+from src.RequestWebDriver import RequestWebDriver
 
 from src.SeleniumTorWebDriver import SeleniumTorWebDriver
 from src.prices.dns.Products import Products
@@ -28,11 +28,8 @@ MICRODATA_LINK = "https://www.dns-shop.ru/product/microdata/"
 
 WAIT_HTML_CONTENT_LOAD = 1
 
-# мб оптимизировать процесс запуска tor и проверок
-
-# дописать алгоритм парсинга цены по uid и переноса в бд
-# дописать алгоритм переноса в бд характерстик (необходимых)
-# алгоритм парсинга наличия и переноса наличия в бд
+# некоторые комплектующие могут быть в разных видах (например плашки оперативы можно купить 2 или 4 (это не учитывается))
+# разбить это все на классы
 class ProductsParser:
     def __init__(self, 
                  logger: logging.Logger = None):
@@ -40,8 +37,8 @@ class ProductsParser:
 
         selenium_manager = SeleniumTorWebDriver(logger=logger)
         self.selenium_manager = selenium_manager
-
-        self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
+        
+        self.web_driver = None
         self.link = None
 
     # реакция при окончании работы или возникновение ошибки
@@ -65,7 +62,8 @@ class ProductsParser:
     def __enter__(self):
         return self
 
-    def __get_html_content(self, link: str):
+    ###
+    def __parse_html_content(self, link: str):
         retries = 0
         while retries < 5:
             try:
@@ -74,7 +72,9 @@ class ProductsParser:
                 except TimeoutException:
                     self.logger.info(f"Link: {link}. (0) TimeoutException")
                     continue
-
+                
+                need_reload = False
+                content_load_retries = 0
                 while True:
                     try:
                         wait = WebDriverWait(self.web_driver, WAIT_HTML_CONTENT_LOAD)
@@ -89,8 +89,15 @@ class ProductsParser:
                         if self.web_driver.title == "HTTP 403":
                             self.logger.info(f"Link: {link}. title (1) = HTTP 403")
                             break
+                        
+                        content_load_retries += 1
+                        if content_load_retries == 10:
+                            need_reload = True
 
                         continue
+
+                if need_reload == True:
+                    continue
                 
                 if self.web_driver.title == "HTTP 403":
                     self.logger.info(f"Link: {link}. title (2) = HTTP 403")
@@ -126,7 +133,7 @@ class ProductsParser:
             self.logger.info(f"Элемент с классом '{ELEMENT_CLASS}' и текстом '{ELEMENT_TEXT}' не найден.")
             return False
 
-    def __get_uid(self, html_content: str):
+    def __parse_uid(self, html_content: str):
         soup = BeautifulSoup(html_content, 'html.parser')
         scripts = soup.find_all('script')
 
@@ -146,20 +153,7 @@ class ProductsParser:
 
         return cardMicrodataUrl
 
-    def __get_availability_status(self, html_content: str):
-        soup = BeautifulSoup(html_content, 'html.parser')
-        element = soup.find('div', class_='order-avail-wrap')
-
-        if element == None:
-            raise AttributeError("div.order-avail-wrap == None")
-
-        element_a = element.find('a')
-        if element_a == None:
-            return element.text
-        else:
-            return element_a.text
-
-    def __get_specs(self, html_content: str):
+    def __parse_specs(self, html_content: str):
         soup = BeautifulSoup(html_content, 'html.parser')  
         title_divs = soup.find_all('div', class_='product-characteristics__spec-title')
 
@@ -173,18 +167,17 @@ class ProductsParser:
 
         return specs
 
-    #"date_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    def get_product_data(self, link: str):
+    def parse_product_data(self, link: str):
         while True:
             self.link = link + "characteristics/"
-            html_content = self.__get_html_content(self.link)
+            html_content = self.__parse_html_content(self.link)
 
             try:
                 if self.__is_necessary_product(html_content) == False:
                     return None
                 
-                uid = self.__get_uid(html_content)
-                specs = self.__get_specs(html_content)
+                uid = self.__parse_uid(html_content)
+                specs = self.__parse_specs(html_content)
 
                 return {
                     "link": link,
@@ -230,7 +223,9 @@ class ProductsParser:
         with open(path, 'w', encoding='utf-8') as json_file:
             json.dump(sorted_data, json_file, indent=4, ensure_ascii=False)
 
-    def get_all_data(self):
+    def parse_all_data(self):
+        self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
+
         links = self.get_links_from_last_link()
 
         if links == None or len(links) == 0:
@@ -238,7 +233,7 @@ class ProductsParser:
 
         data = []
         for index, item in links.items():
-            product_data = self.get_product_data(item["link"])
+            product_data = self.parse_product_data(item["link"])
             if product_data != None:
                 product_data["category"] = item["category"]
                 data.append(product_data)
@@ -269,17 +264,66 @@ class ProductsParser:
         for index, item in links.items():
             if item["link"] == last_link:
                 return {k: v for k, v in links.items() if int(k) >= int(index) + 1}
-
-
     ###
-    def get_status_data(self):
-        pass
+
+    ###!!!
+    # переключение города + 
+    # нормальный алгоритм получения всех данных о статусе
+    # + маппинг сразу же по одному экземпляру данных
+    def __parse_availability_status(self, 
+                                    html_content: str):
+        soup = BeautifulSoup(html_content, 'html.parser')
+        element = soup.find('div', class_='order-avail-wrap')
+
+        if element == None:
+            raise AttributeError("div.order-avail-wrap == None")
+
+        element_a = element.find('a')
+        if element_a == None:
+            return element.text
+        else:
+            return element_a.text
     
-    # метод для получения ссылок для получения статусов
+    #delivery-info-widget inited
+    def __parse_delivery_info(self, 
+                                    html_content: str):
+        soup = BeautifulSoup(html_content, 'html.parser')
+        element = soup.find('div', class_='delivery-info-widget.inited')
+
+        if element == None:
+            raise AttributeError("div.order-avail-wrap == None")
+
+        element_a = element.find('a')
+        if element_a == None:
+            return element.text
+        else:
+            return element_a.text
+        
+    def parse_status_data(self, link: str):
+        while True:
+            self.link = link + "characteristics/"
+            html_content = self.__parse_html_content(self.link)
+
+            try:                
+                uid = self.__parse_uid(html_content)
+                status = self.__parse_availability_status(html_content)
+                delivery_info = self.__parse_delivery_info(html_content)
+
+                return {
+                    "link": link,
+                    "uid": uid,
+                    "status": status,
+                    "delivery_info": delivery_info
+                }
+            except AttributeError as e:
+                self.logger.info(f"Link: {link}. AttributeError")
+                continue
+    
     def get_links_to_status_parse(self):
         pass
 
-    def get_all_status(self):
+    # надо вместе с маппером это сразу делать
+    def parse_all_statuses(self):
         products = Products()
         links = products.get_links_to_parse_from_json()
 
@@ -288,7 +332,7 @@ class ProductsParser:
 
         data = []
         for index, item in links.items():
-            product_data = self.get_status_data(item["link"])
+            product_data = self.parse_status_data(item["link"])
             if product_data != None:
                 product_data["category"] = item["category"]
                 data.append(product_data)
@@ -300,24 +344,76 @@ class ProductsParser:
 
 
     ###
-    def get_products_uid(self):
+    def get_microdata_link(self, uid: str):
+        return MICRODATA_LINK + uid + "/"
+    
+    def parse_microdata(self, uid: str) -> dict:
+        self.link = self.get_microdata_link(uid)
+
+        while True:
+            try:
+                self.web_driver.get(self.link)
+
+                wait = WebDriverWait(self.web_driver, WAIT_HTML_CONTENT_LOAD)
+                wait.until(EC.visibility_of_all_elements_located((By.TAG_NAME, "pre")))
+                html_content = self.web_driver.page_source
+                break
+            except TimeoutException:
+                self.logger.info(f"Link: {self.link}. (0) TimeoutException")
+                continue
+            except NoSuchWindowException:
+                self.logger.info(f"Link: {self.link}. NoSuchWindowException")
+                self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
+                continue
+
+        soup = BeautifulSoup(html_content, 'html.parser')  
+        json_content = soup.find('pre').text
+        json_data = json.loads(json_content)
+
+        product_name = json_data["data"]["name"]
+        price = json_data["data"]["offers"]["price"]
+
+        return {
+            "price": float(price),
+            "product_name": str(product_name)
+        }
+    
+    def save_microdata(self, data):
+        current_directory = os.getcwd()
+        path = current_directory + "\\data\\prices\\dns\\microdata.json"
+        with open(path, 'w', encoding='utf-8') as json_file:
+            json.dump(data, json_file, indent=4, ensure_ascii=False)
+
+    def parse_all_microdata(self):
+        self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
         data = self.get_data()
 
+        all_microdata = {}
         for index, item in data.items():
             link = item["link"]
             uid = item["uid"]
 
-            link
+            microdata = self.parse_microdata(uid)
 
-    # быстрое обновление цен через microdata
-    def get_price(self, uid: str):
-        self.link = MICRODATA_LINK + uid + "/"
-        pass
-    ###
+            all_microdata[index] = {
+                "uid": uid,
+                "name": microdata["product_name"],
+                "price": microdata["price"],
+                "date_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            }
+
+        self.save_microdata(all_microdata)
+        return all_microdata
     
-    # полное обновление данных с переносом в бд
-    def refresh_all_data_mapper(self):
-        pass
+    def get_all_microdata(self):
+        current_directory = os.getcwd()
+        path = current_directory + "\\data\\prices\\dns\\microdata.json"
 
-# https://www.dns-shop.ru/product/microdata/uid/
-# https://www.dns-shop.ru/product/microdata/c3c60e33-a198-11eb-a250-00155dd2ff18/
+        try:
+            with open(path, 'r', encoding="utf-8") as file:
+                micro_data = json.load(file)
+        except FileNotFoundError:
+            return None
+
+        return micro_data
+    ###

@@ -387,7 +387,7 @@ class API:
                 "game_key": int(game_key),
                 "game_settings": game_settings_value,
                 "resolution": resolution_value }
-                            
+                        
             index = index + 1
 
         return data, index
