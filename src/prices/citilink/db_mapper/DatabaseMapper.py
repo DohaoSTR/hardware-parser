@@ -165,3 +165,47 @@ class DatabaseMapper:
             for key, value in traceback_details.items():
                 print(f"{key}: {value}")
             return False
+        
+    def get_most_actual_prices(self):
+        sql_query = text(f"call get_most_actual_citilink_prices()")
+        result = self.session.execute(sql_query)
+        rows = result.fetchall()
+
+        prices = []
+        for row in rows:
+            dns_price = Price(id=row.id, price=row.price, date_time=row.date_time, product_id=row.product_id)
+            prices.append(dns_price)
+
+        return prices
+    
+    def get_most_actual_available_records(self):
+        sql_query = text(f"call get_most_actual_citilink_available()")
+        result = self.session.execute(sql_query)
+        rows = result.fetchall()
+
+        available_records = []
+        for row in rows:
+            available_record = Available(id=row.id, 
+                                  is_available=row.is_available, 
+                                  date_time=row.date_time,
+                                  city_name = row.city_name,
+                                  product_id=row.product_id)
+            available_records.append(available_record)
+
+        return available_records
+
+    def get_products_without_record(self):
+        sql_query = text(f"call get_citilink_products_without_record()")
+        result = self.session.execute(sql_query)
+        rows = result.fetchall()
+
+        products = []
+        for row in rows:
+            product = Product(id=row.id, 
+                                name=row.name, 
+                                link=row.link, 
+                                part_number=row.part_number,
+                                category=row.category)
+            products.append(product)
+
+        return products

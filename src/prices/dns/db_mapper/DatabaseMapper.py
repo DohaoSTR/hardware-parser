@@ -1,13 +1,15 @@
 import logging
 from logging import Logger
+
+import json
+import os
 import sys
-import time
 import traceback
+from typing import List
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
-from src.prices.dns.ProductsParser import ProductsParser
 
 from src.prices.dns.db_mapper.Price import Price
 from src.prices.dns.db_mapper.Product import Product
@@ -128,6 +130,39 @@ class DatabaseMapper:
                 print(f"{key}: {value}")
             return False
 
+    def get_products_to_parse(self):
+        current_directory = os.getcwd()
+        path = current_directory + "\\data\\prices\\dns\\products_to_parse.json"
+
+        try:
+            with open(path, 'r', encoding="utf-8") as file:
+                prices_data = json.load(file)
+        except FileNotFoundError:
+            return None
+
+        return prices_data
+    
+    def save_products_to_parse(self, uid):
+        prices_data = self.get_products_to_parse()
+
+        if prices_data == None:
+            existing_data = {}
+        else:
+            existing_data = prices_data
+
+        sorted_data = {}
+        index = 0
+        for key, value in existing_data.items():
+            sorted_data[index] = value
+            index += 1
+
+        sorted_data[index] = uid
+    
+        current_directory = os.getcwd()
+        path = current_directory + "\\data\\prices\\dns\\products_to_parse.json"
+        with open(path, 'w', encoding='utf-8') as json_file:
+            json.dump(sorted_data, json_file, indent=4, ensure_ascii=False)
+
     def add_available_data(self, data):
         try:
             Base = declarative_base()
@@ -148,11 +183,10 @@ class DatabaseMapper:
                                     date_time = date_time,
                                     city_name = city_name)
                     entity.product = product
+                    self.session.add(entity)
                 else:
-                    parser = ProductsParser(self.logger)
-                    parser.save_products_to_parse(uid)
-                
-                self.session.add(entity)
+                    self.save_products_to_parse(uid)
+
             self.session.commit()
             return True
         except Exception as e:
@@ -185,3 +219,73 @@ class DatabaseMapper:
             prices.append(dns_price)
 
         return prices
+    
+    def get_most_actual_available_records(self):
+        sql_query = text(f"call get_most_actual_dns_available()")
+        result = self.session.execute(sql_query)
+        rows = result.fetchall()
+
+        available_records = []
+        for row in rows:
+            available_record = Available(id=row.id, 
+                                  status=row.status, 
+                                  delivery_info = row.delivery_info,
+                                  date_time=row.date_time,
+                                  city_name = row.city_name,
+                                  product_id=row.product_id)
+            available_records.append(available_record)
+
+        return available_records
+
+    def get_products_without_record(self):
+        sql_query = text(f"call get_dns_products_without_record()")
+        result = self.session.execute(sql_query)
+        rows = result.fetchall()
+
+        products = []
+        for row in rows:
+            product = Product(uid=row.uid, 
+                                name=row.name, 
+                                link=row.link, 
+                                part_number=row.part_number,
+                                category=row.category)
+            products.append(product)
+
+        return products
+    
+    def get_products_links(self):
+        Base = declarative_base()
+        Base.metadata.create_all(self.engine)
+
+        products = self.session.query(Product).all()
+
+        if products == None:
+            return None
+        
+        links_list = []
+        products_without_record: List[Product] = self.get_products_without_record()
+        if products_without_record != None:
+            for product in products_without_record:
+                value = { "category": product.category, "link": product.link}
+                links_list.append(value)
+
+        availables_list: List[Available] = self.get_most_actual_available_records() 
+        for available_entity in availables_list:
+            product = self.session.query(Product).filter_by(uid = available_entity.product_id).first()
+            value = { "category": product.category, "link": product.link }
+            if value not in links_list:
+                links_list.append(value)
+
+        for product in products:
+            value = { "category": product.category, "link": product.link}
+            if value not in links_list:
+                links_list.append(value)
+
+
+        links_dict = {}
+        index = 0
+        for item in links_list:
+            links_dict[index] = item
+            index += 1
+        
+        return links_dict
