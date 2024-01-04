@@ -8,7 +8,7 @@ class Price(Base):
     __tablename__ = 'citilink_price'
 
     id = Column(Integer, primary_key=True, nullable=False)
-    price = Column(Float(precision=10, scale=2), nullable=False)
+    price = Column(Float(precision=10), nullable=False)
     date_time = Column(DateTime, nullable=False)
     product_id = Column(Integer, ForeignKey('citilink_product.id'), nullable=False)
 

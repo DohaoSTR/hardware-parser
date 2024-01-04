@@ -13,7 +13,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.common.exceptions import NoSuchWindowException
-    
+
 from src.SeleniumTorWebDriver import SeleniumTorWebDriver
 
 HEADLESS = True
@@ -27,7 +27,7 @@ class PriceParser:
         selenium_manager = SeleniumTorWebDriver(logger=logger)
         self.selenium_manager = selenium_manager
 
-        self.web_driver = self.selenium_manager.get_driver(True, True)
+        self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
         
         self.link = None
 
@@ -45,50 +45,54 @@ class PriceParser:
             if self.web_driver != None:
                 self.selenium_manager.clear_web_drivers(self.web_driver)
         except NoSuchWindowException:
-            print("Окно уже закрыто.")
+            self.logger.info("Окно уже закрыто.")
 
         self.logger.info("Вызван метод __exit__, ресурсы очищены.")
 
     def __enter__(self):
         return self
 
-    ###
     def __parse_html_content(self, 
                            link: str):
         retries = 0
         while retries < 5:
-            self.web_driver.get(link)
-            
-            time.sleep(3)
-            self.web_driver.execute_script("window.scrollBy(0, 500);")
-            
-            if self.web_driver.title == "Ошибка 404: страница не найдена":
-                self.logger.info(f"Link: {link}. Ошибка 404: страница не найдена.")
-                self.selenium_manager.clear_web_drivers(self.web_driver)
-                self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
-                continue
+            try:
+                self.web_driver.get(link)
 
-            if self.web_driver.title == "429":
-                self.logger.info(f"Link: {link}. Ошибка 429. Слишком частые запросы.")
-                self.selenium_manager.clear_web_drivers(self.web_driver)
-                self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
-                continue
+                time.sleep(3)
 
-            if self.web_driver.title == "":
-                self.logger.info(f"Link: {link}. title == 0")
-                self.selenium_manager.clear_web_drivers(self.web_driver)
-                self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
-                continue
+                self.web_driver.execute_script("window.scrollBy(0, 500);")
+                
+                if self.web_driver.title == "Ошибка 404: страница не найдена":
+                    self.logger.info(f"Link: {link}. Ошибка 404: страница не найдена.")
+                    self.selenium_manager.clear_web_drivers(self.web_driver)
+                    self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
+                    continue
 
-            html = self.web_driver.page_source
-            
-            if html == None or len(html) == 0:
-                self.logger.info(f"Link: {link}. title == 0")
-                self.selenium_manager.clear_web_drivers(self.web_driver)
-                self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
-                continue
+                if self.web_driver.title == "429":
+                    self.logger.info(f"Link: {link}. Ошибка 429. Слишком частые запросы.")
+                    self.selenium_manager.clear_web_drivers(self.web_driver)
+                    self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
+                    continue
 
-            return html
+                if self.web_driver.title == "":
+                    self.logger.info(f"Link: {link}. title == 0")
+                    self.selenium_manager.clear_web_drivers(self.web_driver)
+                    self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
+                    continue
+
+                html = self.web_driver.page_source
+                
+                if html == None or len(html) == 0:
+                    self.logger.info(f"Link: {link}. title == 0")
+                    self.selenium_manager.clear_web_drivers(self.web_driver)
+                    self.web_driver = self.selenium_manager.get_driver(IS_IMAGES_LOAD, HEADLESS)
+                    continue
+                
+                return html
+            except TimeoutException as e:
+                self.logger.info(f"Link: {link}. TimeoutException - {e}")
+                continue
         
         self.logger.info(f"Link: {link}. html код = None.")
         return None
@@ -119,36 +123,39 @@ class PriceParser:
 
         data = []
         for product_element in product_elements:
-            while True:
-                try:
-                    price_element = product_element.find(attrs={"data-meta-price": True})
-                    if price_element != None:
-                        price = price_element.get('data-meta-price')
-                        available = True
-                    else:
-                        price = None
-                        available = False
+            price_element = product_element.find(attrs={"data-meta-price": True})
+            
+            if price_element != None:
+                price = price_element.get('data-meta-price')
+                available = True
+            else:
+                price = None
+                available = False
 
-                    title_element = product_element.find('a', class_ = "app-catalog-9gnskf e1259i3g0")
-                    if title_element == None:
-                        self.logger.info("title_element = None")
+            title_element = product_element.find('a', class_ = "app-catalog-9gnskf e1259i3g0")
+            if title_element == None:
+                a_element = product_element.find('a', class_ = "app-catalog-1k0cnlg e1mnvjgw0")
+                link = "https://www.citilink.ru/" + a_element.get('href')
 
-                    link = "https://www.citilink.ru/" + title_element.get('href')
-                    title = title_element.get('title')
+                title_element = a_element.find('span')
+                if title_element != None:
+                    title = title_element.text
+                else:
+                    image_tag = soup.find('img')
+                    title = image_tag['alt']
+            else:
+                link = "https://www.citilink.ru/" + title_element.get('href')
+                title = title_element.get('title')
 
-                    data.append({
-                        "title": title,
-                        "link": link,
-                        "price": price,
-                        "available": available,
-                        "city_name": city_name,
-                        "category": category,
-                        "date_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    })
-                    break
-                except AttributeError as e:
-                    self.logger.info(f"AttributeError {e}")
-                    continue
+            data.append({
+                "title": title,
+                "link": link,
+                "price": price,
+                "available": available,
+                "city_name": city_name,
+                "category": category,
+                "date_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            })
         
         return data
     
@@ -182,7 +189,11 @@ class PriceParser:
             while True:
                 self.link = self.get_link(category_link, page_number, city_code)
                 html_content = self.__parse_html_content(self.link)
-                page_data = self.parse_page_data(html_content, city_name, category_name)
+                try:
+                    page_data = self.parse_page_data(html_content, city_name, category_name)
+                except AttributeError as e:
+                    self.logger.info(f"Link: {self.link}. AttributeError")
+                    continue
 
                 if page_data == None or len(page_data) == 0:
                     continue
@@ -239,9 +250,9 @@ class PriceParser:
         current_directory = os.getcwd()
         path = current_directory + "\\data\\prices\\citilink\\prices.json"
         with open(path, 'w', encoding='utf-8') as json_file:
-            json.dump(data, json_file, indent=4, ensure_ascii=False)
+            json.dump(sorted_data, json_file, indent=4, ensure_ascii=False)
 
-    def parse_all_data(self) -> None:
+    def parse_all_data(self):
         current_directory = os.getcwd()
         categories_path = current_directory + "\\data\\prices\\citilink\\categories_to_parse.json"
         with open(categories_path, 'r', encoding="utf-8") as file:
@@ -259,5 +270,4 @@ class PriceParser:
                                                        city_code, 
                                                        city_name)
         self.save_data(data)
-
         return data

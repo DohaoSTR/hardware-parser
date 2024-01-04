@@ -64,6 +64,7 @@ class SeleniumTorWebDriver:
 
     def clear_web_drivers(self, web_driver: WebDriver):
         web_driver.close()
+        web_driver.quit()
 
         if self.current_port != None:
             self.remove_port(self.current_port)
@@ -85,7 +86,7 @@ class SeleniumTorWebDriver:
                 chrome_options.add_argument("--disable-features=CSSGridLayout")
                 chrome_options.add_argument("--blink-settings=imagesEnabled=false")
 
-                chrome_options.add_argument("--incognito")
+                #chrome_options.add_argument("--incognito")
                 chrome_options.add_argument("--disable-gpu")
                 chrome_options.add_argument("--no-sandbox")
                 chrome_options.add_argument("--disable-dev-shm-usage")

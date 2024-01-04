@@ -2,7 +2,7 @@ import logging
 import time
 
 from src.prices.dns.ProductsParser import ProductsParser
-from src.prices.dns.db_mapper.Mapper import DatabaseMapper
+from src.prices.dns.db_mapper.DatabaseMapper import DatabaseMapper
 
 LOG_PATH = "data\\logs\\dns_refresh_prices.log"
 

@@ -1,15 +1,16 @@
 import logging
 from logging import Logger
+import re
 import sys
-import time
 import traceback
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 
-from src.prices.dns.db_mapper.Price import Price
-from src.prices.dns.db_mapper.Product import Product
+from src.prices.citilink.db_mapper.Product import Product
+from src.prices.citilink.db_mapper.Price import Price
+from src.prices.citilink.db_mapper.Available import Available
 
 HOST = "a0871451.xsph.ru"
 USER_NAME = "a0871451_prices"
@@ -30,7 +31,7 @@ class DatabaseMapper:
         self.logger.info(f"Значение исключения: {exc_value}")
         self.logger.info(f"Объект traceback: {traceback}")
 
-        if self.session == None:
+        if self.session != None:
             self.session.close()
         else:
             self.logger.warning("DatabaseMapper, __exit__ - session равен None.")
@@ -40,33 +41,29 @@ class DatabaseMapper:
     def __enter__(self):
         return self
 
-    def add_products_data(self, micro_data: dict, products_data):
+    def add_products_data(self, products_data):
         try:
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
-            data = []
             for index, item in products_data.items():
-                uid = item["uid"]
+                title = item["title"]
                 link = item["link"]
                 category = item["category"]
-
+                
                 part_number = None
-                for spec in item["specs"]:
-                    if spec["Name"] == "Код производителя":
-                        part_number = str(spec["Value"]).replace("[", "").replace("]", "").replace("{", "").replace("}", "")
-                        if part_number == "нет":
-                            part_number == None
+                match = re.search(r'\[([^]]+)\]', title)
+                if match:
+                    part_number = str(match.group(1)).upper()
 
-                micro_data_item = micro_data.get(index)
-                if micro_data_item != None:
-                    entity = Product(uid=uid, 
-                                    name=micro_data_item["name"], 
-                                    part_number=part_number, 
-                                    link=link, 
-                                    category=category)
-                    
+                product = self.session.query(Product).filter_by(link = link).first()
+                if product == None:
+                    entity = Product(name = title, 
+                                     link = link, 
+                                     part_number = part_number,
+                                     category = category)
                     self.session.add(entity)
+
             self.session.commit()
             return True
         except Exception as e:
@@ -87,28 +84,29 @@ class DatabaseMapper:
             for key, value in traceback_details.items():
                 print(f"{key}: {value}")
             return False
-
-    def add_prices(self, micro_data):
+        
+    def add_price_data(self, products_data):
         try:
             Base = declarative_base()
             Base.metadata.create_all(self.engine)
 
-            data = []
-            for index, item in micro_data.items():
+            for index, item in products_data.items():
                 price = item["price"]
                 date_time = item["date_time"]
-                uid = item["uid"]
+                link = item["link"]
 
-                product = self.session.query(Product).filter_by(uid = uid).first()
-                entity = Price(price=float(price), 
-                                date_time=date_time)
-                entity.product = product
-                
-                self.session.add(entity)
+                product = self.session.query(Product).filter_by(link = link).first()
+                if product != None:
+                    entity = Price(price = price, 
+                                   date_time = date_time)
+                    entity.product = product
+
+                    self.session.add(entity)
+
             self.session.commit()
             return True
         except Exception as e:
-            self.logger.error(f"Класс DatabaseMapper. Метод add_prices. Ошибка - {str(e)}")
+            self.logger.error(f"Класс DatabaseMapper. Метод add_price_data. Ошибка - {str(e)}")
             exc_type, exc_value, exc_traceback = sys.exc_info()
             file_name = exc_traceback.tb_frame.f_globals['__file__']
             line_number = exc_traceback.tb_lineno
@@ -125,15 +123,45 @@ class DatabaseMapper:
             for key, value in traceback_details.items():
                 print(f"{key}: {value}")
             return False
+    
+    def add_available_data(self, products_data):
+        try:
+            Base = declarative_base()
+            Base.metadata.create_all(self.engine)
 
-    def get_most_actual_prices(self):
-        sql_query = text(f"call get_most_actual_dns_prices()")
-        result = self.session.execute(sql_query)
-        rows = result.fetchall()
+            for index, item in products_data.items():
+                date_time = item["date_time"]
+                link = item["link"]
 
-        prices = []
-        for row in rows:
-            dns_price = Price(id=row.id, price=row.price, date_time=row.date_time, product_id=row.product_id)
-            prices.append(dns_price)
+                available = item["available"]
+                city_name = item["city_name"]
 
-        return prices
+                product = self.session.query(Product).filter_by(link = link).first()
+                if product != None:
+                    entity = Available(is_available = available,
+                                       city_name = city_name,
+                                       date_time = date_time)
+                    entity.product = product
+
+                    self.session.add(entity)
+
+            self.session.commit()
+            return True
+        except Exception as e:
+            self.logger.error(f"Класс DatabaseMapper. Метод add_available_data. Ошибка - {str(e)}")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            file_name = exc_traceback.tb_frame.f_globals['__file__']
+            line_number = exc_traceback.tb_lineno
+            traceback_details = {
+                'filename': file_name,
+                'lineno': line_number,
+                'name': exc_traceback.tb_frame.f_code.co_name,
+                'type': exc_type.__name__,
+                'message': str(exc_value),
+                'traceback': traceback.format_exc()
+            }
+            print(f"Ошибка в файле {file_name}, строка {line_number}: {e}")
+            print("Подробности ошибки:")
+            for key, value in traceback_details.items():
+                print(f"{key}: {value}")
+            return False

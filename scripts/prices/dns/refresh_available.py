@@ -1,6 +1,6 @@
 import logging
 import time
-from src.prices.dns.db_mapper.Mapper import DatabaseMapper
+from src.prices.dns.db_mapper.DatabaseMapper import DatabaseMapper
 
 from src.prices.dns.ProductsParser import ProductsParser
 
@@ -16,26 +16,15 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
-def test_parse_status():
-    parser = ProductsParser(logger)
-    with parser:
-        start_time = time.time()
-
-        data = parser.parse_status_data()
-
-        end_time = time.time()
-        execution_time = end_time - start_time
-        print(f"Метод выполнился за {execution_time:.2f} секунд")
-
 def map_all_statuses():
     parser = ProductsParser(logger)
     with parser:
         start_time = time.time()
 
-        data = parser.parse_all_statuses()
+        data = parser.map_all_statuses()
 
         end_time = time.time()
         execution_time = end_time - start_time
         print(f"Метод выполнился за {execution_time:.2f} секунд")
 
-#map_all_statuses()
+map_all_statuses()

@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import time
 
 from bs4 import BeautifulSoup
 
@@ -17,6 +18,7 @@ from src.RequestWebDriver import RequestWebDriver
 
 from src.SeleniumTorWebDriver import SeleniumTorWebDriver
 from src.prices.dns.Products import Products
+from src.prices.dns.db_mapper.DatabaseMapper import DatabaseMapper
 
 ELEMENT_CLASS = "ui-link"
 ELEMENT_TEXT = "Комплектующие для ПК"
@@ -28,8 +30,6 @@ MICRODATA_LINK = "https://www.dns-shop.ru/product/microdata/"
 
 WAIT_HTML_CONTENT_LOAD = 1
 
-# некоторые комплектующие могут быть в разных видах (например плашки оперативы можно купить 2 или 4 (это не учитывается))
-# разбить это все на классы
 class ProductsParser:
     def __init__(self, 
                  logger: logging.Logger = None):
@@ -79,6 +79,7 @@ class ProductsParser:
                     try:
                         wait = WebDriverWait(self.web_driver, WAIT_HTML_CONTENT_LOAD)
 
+                        wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "order-avail-wrap")))
                         wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "product-characteristics__spec-title")))
                         wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "product-characteristics__spec-value")))
                         self.logger.info(f"Link: {link}. Timeout True")
@@ -93,6 +94,7 @@ class ProductsParser:
                         content_load_retries += 1
                         if content_load_retries == 10:
                             need_reload = True
+                            break
 
                         continue
 
@@ -266,17 +268,72 @@ class ProductsParser:
                 return {k: v for k, v in links.items() if int(k) >= int(index) + 1}
     ###
 
-    ###!!!
-    # переключение города + 
-    # нормальный алгоритм получения всех данных о статусе
-    # + маппинг сразу же по одному экземпляру данных
+
+
+    ###
+    # проблема в том что алгоритм пытается полностью грузить страницу а это делать не надо
+    # плюс он не успевает ее прогрузить
+    def __parse_available_html_content(self, link: str):
+        while True:
+            try:
+                try:
+                    self.web_driver.get(link)
+                except TimeoutException:
+                    self.logger.info(f"Link: {link}. (0) TimeoutException")
+                    continue
+                
+                need_reload = False
+                content_load_retries = 0
+                while True:
+                    try:
+                        wait = WebDriverWait(self.web_driver, WAIT_HTML_CONTENT_LOAD)
+
+                        wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "order-avail-wrap")))
+                        self.logger.info(f"Link: {link}. Timeout True")
+                        break
+                    except TimeoutException:
+                        self.logger.info(f"Link: {link}. TimeoutException")
+
+                        if self.web_driver.title == "HTTP 403":
+                            self.logger.info(f"Link: {link}. title (1) = HTTP 403")
+                            break
+                        
+                        content_load_retries += 1
+                        if content_load_retries == 30:
+                            need_reload = True
+
+                        continue
+
+                if need_reload == True:
+                    continue
+                
+                if self.web_driver.title == "HTTP 403":
+                    self.logger.info(f"Link: {link}. title (2) = HTTP 403")
+                    self.selenium_manager.clear_web_drivers(self.web_driver)
+                    self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
+                    continue
+
+                html = self.web_driver.page_source
+                if html == None or len(html) == 0:
+                    self.logger.info(f"Link: {link}. html = None")
+                    self.selenium_manager.clear_web_drivers(self.web_driver)
+                    self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
+                    continue
+
+            except NoSuchWindowException:
+                self.logger.info(f"Link: {link}. NoSuchWindowException")
+                self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
+                continue
+
+            return html
+    
     def __parse_availability_status(self, 
                                     html_content: str):
         soup = BeautifulSoup(html_content, 'html.parser')
         element = soup.find('div', class_='order-avail-wrap')
 
         if element == None:
-            raise AttributeError("div.order-avail-wrap == None")
+            return None
 
         element_a = element.find('a')
         if element_a == None:
@@ -284,46 +341,182 @@ class ProductsParser:
         else:
             return element_a.text
     
-    #delivery-info-widget inited
     def __parse_delivery_info(self, 
                                     html_content: str):
         soup = BeautifulSoup(html_content, 'html.parser')
-        element = soup.find('div', class_='delivery-info-widget.inited')
+        element = soup.find('div', class_='delivery-info-widget inited')
 
         if element == None:
-            raise AttributeError("div.order-avail-wrap == None")
+            return None
 
         element_a = element.find('a')
         if element_a == None:
             return element.text
         else:
             return element_a.text
-        
-    def parse_status_data(self, link: str):
-        while True:
-            self.link = link + "characteristics/"
-            html_content = self.__parse_html_content(self.link)
+    
+    def __parse_city_name(self,
+                          html_content: str):
+        soup = BeautifulSoup(html_content, 'html.parser')
+        element = soup.find('span', class_='city-select__text_90n')
 
+        return element.text
+
+    def __change_city(self,
+                      city_name: str):
+        while True:
+            try:
+                self.web_driver.get(f"https://www.dns-shop.ru/search/?q={city_name}")
+            except TimeoutException:
+                self.logger.info(f"__change_city. (0) TimeoutException")
+            
+            need_reload = False
+            content_load_retries = 0
+            while True:
+                try:
+                    wait = WebDriverWait(self.web_driver, WAIT_HTML_CONTENT_LOAD)
+
+                    wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "city-select__text_90n")))
+                    self.logger.info(f"__change_city. Timeout True")
+                    break
+                except TimeoutException:
+                    self.logger.info(f"__change_city. TimeoutException")
+
+                    if self.web_driver.title == "HTTP 403":
+                        self.logger.info(f"__change_city. title (1) = HTTP 403")
+                        break
+                    
+                    content_load_retries += 1
+                    if content_load_retries == 10:
+                        need_reload = True
+                        break
+
+                    continue
+
+            if need_reload == True:
+                continue
+
+            element = self.web_driver.find_element(By.CLASS_NAME, "city-select__text_90n")
+            if element == None:
+                continue
+
+            if element.text == city_name:
+                break
+
+    def parse_status_data(self, 
+                          link: str,
+                          city_name: str):
+        while True:
+            self.link = link
+            html_content = self.__parse_available_html_content(self.link)
             try:                
                 uid = self.__parse_uid(html_content)
                 status = self.__parse_availability_status(html_content)
                 delivery_info = self.__parse_delivery_info(html_content)
 
+                if self.__parse_city_name(html_content) != city_name:
+                    self.logger.info(f"Link: {self.link}. city_name not equal")
+                    self.__change_city(city_name)
+                    continue
+
+                if status != None:
+                    status = status.replace("\n", "").replace("\t", "")
+
                 return {
                     "link": link,
                     "uid": uid,
                     "status": status,
-                    "delivery_info": delivery_info
+                    "city_name": city_name,
+                    "delivery_info": delivery_info,
+                    "date_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
             except AttributeError as e:
-                self.logger.info(f"Link: {link}. AttributeError")
+                self.logger.info(f"Link: {self.link}. AttributeError {e}")
                 continue
+
+    def get_city_names(self):
+        current_directory = os.getcwd()
+        categories_path = current_directory + "\\data\\prices\\dns\\city_names.json"
+        with open(categories_path, 'r', encoding="utf-8") as file:
+            data = json.load(file)
+
+        return data
     
-    def get_links_to_status_parse(self):
+    def get_available_data(self):
+        current_directory = os.getcwd()
+        path = current_directory + "\\data\\prices\\dns\\available_data.json"
+
+        try:
+            with open(path, 'r', encoding="utf-8") as file:
+                prices_data = json.load(file)
+        except FileNotFoundError:
+            return None
+
+        return prices_data
+    
+    def save_available_data(self, data):
+        prices_data = self.get_available_data()
+
+        if prices_data == None:
+            existing_data = {}
+        else:
+            existing_data = prices_data
+
+        sorted_data = {}
+        index = 0
+        for key, value in existing_data.items():
+            sorted_data[index] = value
+            index += 1
+
+        for item in data:
+            sorted_data[index] = item
+            index += 1
+    
+        current_directory = os.getcwd()
+        path = current_directory + "\\data\\prices\\dns\\available_data.json"
+        with open(path, 'w', encoding='utf-8') as json_file:
+            json.dump(sorted_data, json_file, indent=4, ensure_ascii=False)
+    
+    def get_products_to_parse(self):
+        current_directory = os.getcwd()
+        path = current_directory + "\\data\\prices\\dns\\products_to_parse.json"
+
+        try:
+            with open(path, 'r', encoding="utf-8") as file:
+                prices_data = json.load(file)
+        except FileNotFoundError:
+            return None
+
+        return prices_data
+    
+    def save_products_to_parse(self, uid):
+        prices_data = self.get_products_to_parse()
+
+        if prices_data == None:
+            existing_data = {}
+        else:
+            existing_data = prices_data
+
+        sorted_data = {}
+        index = 0
+        for key, value in existing_data.items():
+            sorted_data[index] = value
+            index += 1
+
+        sorted_data[index] = uid
+    
+        current_directory = os.getcwd()
+        path = current_directory + "\\data\\prices\\dns\\products_to_parse.json"
+        with open(path, 'w', encoding='utf-8') as json_file:
+            json.dump(sorted_data, json_file, indent=4, ensure_ascii=False)
         pass
 
-    # надо вместе с маппером это сразу делать
-    def parse_all_statuses(self):
+    def map_all_statuses(self):
+        self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
+
+        mapper = DatabaseMapper(self.logger)
+        city_names = self.get_city_names()
+
         products = Products()
         links = products.get_links_to_parse_from_json()
 
@@ -331,15 +524,19 @@ class ProductsParser:
             return
 
         data = []
-        for index, item in links.items():
-            product_data = self.parse_status_data(item["link"])
-            if product_data != None:
-                product_data["category"] = item["category"]
-                data.append(product_data)
+        for city_index, city_name in city_names.items():
+            self.__change_city(city_name)
+            for index, item in links.items():
+                product_data = self.parse_status_data(item["link"], city_name)
+                print(product_data)
+                if product_data != None:
+                    product_data["category"] = item["category"]
+                    data.append(product_data)
 
-            if int(index) % 10 == 0:
-                self.save_data(data)
-                data = []
+                if int(index) % 10 == 0:
+                    self.save_available_data(data)
+                    mapper.add_available_data(data)
+                    data = []
     ###
 
 

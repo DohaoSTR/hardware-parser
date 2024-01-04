@@ -1,7 +1,7 @@
 import logging
 import time
 
-from src.prices.dns.db_mapper.Mapper import DatabaseMapper
+from src.prices.dns.db_mapper.DatabaseMapper import DatabaseMapper
 from src.prices.dns.ProductsParser import ProductsParser
 
 LOG_PATH = "data\\logs\\dns_mapper.log"
