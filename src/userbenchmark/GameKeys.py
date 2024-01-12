@@ -1,3 +1,7 @@
+from typing import List
+from src.RequestWebDriver import RequestWebDriver
+from src.TorUserData import TorUserData
+from src.userbenchmark.UserBenchmarkRequest import UserBecnhmarkRequest
 from ..SeleniumWebDriver import SeleniumWebDriver
 from ..TorManager import TorManager
 
@@ -34,7 +38,7 @@ class GameKeys:
             else:
                 break
 
-        self.users_with_ports = TorManager.get_users()
+        self.users_with_ports: List[TorUserData] = TorManager.get_users_data()
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.logger.info("Параметры метода __exit__:")
@@ -57,10 +61,10 @@ class GameKeys:
     def __get_web_driver_on_link(self, link):
         while True:
             try:
-                port, user = TorManager.get_random_user(self.users_with_ports)
+                user_data: TorUserData = TorManager.get_random_user(self.users_with_ports)
 
-                selenium_driver = SeleniumWebDriver(logger)
-                web_driver = selenium_driver.get_web_driver(port, user)
+                selenium_driver = SeleniumWebDriver(self.logger)
+                web_driver = selenium_driver.get_web_driver(user_data.port, user_data.user_agent)
                 web_driver.get(link)
 
                 wait = WebDriverWait(web_driver, LINK_LOADING_WAIT)
@@ -105,6 +109,7 @@ class GameKeys:
             disabled_li_element_class_name = "disabled"
             wait = WebDriverWait(web_driver, CHANGE_PAGE_BUTTON_WAIT)
             wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, disabled_li_element_class_name)))
+            wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "tl-icon")))
         except TimeoutException:
             self.logger.error(f"TimeoutException обработана в методе __wait_to_page_load.")
             GameKeys.__web_driver_quit(web_driver)
@@ -143,15 +148,19 @@ class GameKeys:
         try:
             wait = WebDriverWait(web_driver, CHANGE_PAGE_BUTTON_WAIT)
             wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, disabled_li_element_class_name)))
+            wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "tl-icon")))
 
             links_elements = web_driver.find_elements(By.CLASS_NAME, link_element_class_name)
 
             links = []
             for link_element in links_elements:
                 if link_element:
+                    image_link = link_element.find_element(By.CLASS_NAME, "tl-icon").get_attribute("src")
                     link = link_element.get_attribute("href")
+
                     if link:
-                        links.append(link)
+                        links.append({ "link": link, 
+                                       "image_link": image_link})
 
         except TimeoutException:
             self.logger.error(f"TimeoutException обработана в методе __get_game_links_from_page.")
@@ -185,10 +194,14 @@ class GameKeys:
     # получение игровых ключей из ссылки
     def __extract_game_keys_from_links(self, links):
         game_keys_data = {}
-        for link in links:
-            game_id = re.search(r'/(\d+)/', link).group(1)
-            game_title = re.search(r'\/([^/]+)/(\d+)/', link).group(1).replace("FPS-Estimates-", "").replace('--', ' ').replace('-', ' ').rstrip()
+
+        for item in links:
+            game_id = re.search(r'/(\d+)/', item["link"]).group(1)
+            game_title = re.search(r'\/([^/]+)/(\d+)/', item["link"]).group(1).replace("FPS-Estimates-", "").replace('--', ' ').replace('-', ' ').rstrip()
             game_keys_data[game_id] = game_title
+
+            game_keys_data[game_id] = {"game_title": game_title,
+                                       "image_link": item["image_link"]}
 
         return game_keys_data
     
@@ -239,22 +252,16 @@ class GameKeys:
     # сохранение ключей в json
     def save_game_keys_to_json(game_keys):
         current_directory = os.getcwd()
-        file_path = current_directory + "\\data\\userbenchmark\\game_keys.json"
+        file_path = current_directory + "\\data\\userbenchmark\\game_data.json"
 
         with open(file_path, 'w', encoding='utf-8') as json_file:
             json.dump(game_keys, json_file, indent=4, ensure_ascii=False)
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                        encoding='utf-8')
-    logger = logging.getLogger("userbenchmark_game_keys_parser")
-    file_handler = logging.FileHandler("userbenchmark_parser\\logs\\userbenchmark_game_keys_parser.log")
-    file_handler.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
+    def get_game_data_from_json():        
+        current_directory = os.getcwd()
+        file_path = current_directory + "\\data\\userbenchmark\\game_data.json"
 
-    parser = GameKeys(logger)
-    with parser:
-        game_keys_data = parser.get_game_links_from_all_pages()
-        GameKeys.save_game_keys_to_json(game_keys_data)
+        with open(file_path, 'r', encoding='utf-8') as json_file:
+            game_keys = json.load(json_file)
+            
+        return game_keys

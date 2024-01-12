@@ -82,6 +82,22 @@ class DatabaseMapper:
             self.logger.error(f"Класс UserBenchmarkToDBMapper. Метод add_games. Ошибка - {str(e)}")
             return False
 
+    def add_game_images(self):
+        try:
+            game_images = API.get_game_images()
+
+            Base = declarative_base()
+            Base.metadata.create_all(self.engine)
+    
+            for entity in game_images:
+                self.session.add(entity)
+
+            self.session.commit()
+            return True
+        except Exception as e:
+            self.logger.error(f"Класс UserBenchmarkToDBMapper. Метод add_game_images. Ошибка - {str(e)}")
+            return False
+
     def add_parts_keys(self):
         try:
             keys_items = API.get_keys_of_all_parts()

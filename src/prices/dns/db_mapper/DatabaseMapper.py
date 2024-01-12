@@ -164,49 +164,57 @@ class DatabaseMapper:
             json.dump(sorted_data, json_file, indent=4, ensure_ascii=False)
 
     def add_available_data(self, data):
-        try:
-            Base = declarative_base()
-            Base.metadata.create_all(self.engine)
+        is_exception_add = False 
+        while True:
+            try:
+                if is_exception_add == True:
+                    self.session.commit()
+                    is_exception_add = False
+                    return True
+                
+                Base = declarative_base()
+                Base.metadata.create_all(self.engine)
 
-            for item in data:
-                status = item["status"]
-                city_name = item["city_name"]
-                delivery_info = item["delivery_info"]
-                date_time = item["date_time"]
-                uid = item["uid"]
+                for item in data:
+                    status = item["status"]
+                    city_name = item["city_name"]
+                    delivery_info = item["delivery_info"]
+                    date_time = item["date_time"]
+                    uid = item["uid"]
 
-                product = self.session.query(Product).filter_by(uid = uid).first()
+                    product = self.session.query(Product).filter_by(uid = uid).first()
 
-                if product != None:
-                    entity = Available(delivery_info = delivery_info, 
-                                    status = status,
-                                    date_time = date_time,
-                                    city_name = city_name)
-                    entity.product = product
-                    self.session.add(entity)
-                else:
-                    self.save_products_to_parse(uid)
+                    if product != None:
+                        entity = Available(delivery_info = delivery_info, 
+                                        status = status,
+                                        date_time = date_time,
+                                        city_name = city_name)
+                        entity.product = product
+                        self.session.add(entity)
+                    else:
+                        self.save_products_to_parse(uid)
 
-            self.session.commit()
-            return True
-        except Exception as e:
-            self.logger.error(f"Класс DatabaseMapper. Метод add_available_data. Ошибка - {str(e)}")
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            file_name = exc_traceback.tb_frame.f_globals['__file__']
-            line_number = exc_traceback.tb_lineno
-            traceback_details = {
-                'filename': file_name,
-                'lineno': line_number,
-                'name': exc_traceback.tb_frame.f_code.co_name,
-                'type': exc_type.__name__,
-                'message': str(exc_value),
-                'traceback': traceback.format_exc()
-            }
-            print(f"Ошибка в файле {file_name}, строка {line_number}: {e}")
-            print("Подробности ошибки:")
-            for key, value in traceback_details.items():
-                print(f"{key}: {value}")
-            return False
+                self.session.commit()
+                return True
+            except Exception as e:
+                self.logger.error(f"Класс DatabaseMapper. Метод add_available_data. Ошибка - {str(e)}")
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                file_name = exc_traceback.tb_frame.f_globals['__file__']
+                line_number = exc_traceback.tb_lineno
+                traceback_details = {
+                    'filename': file_name,
+                    'lineno': line_number,
+                    'name': exc_traceback.tb_frame.f_code.co_name,
+                    'type': exc_type.__name__,
+                    'message': str(exc_value),
+                    'traceback': traceback.format_exc()
+                }
+                print(f"Ошибка в файле {file_name}, строка {line_number}: {e}")
+                print("Подробности ошибки:")
+                for key, value in traceback_details.items():
+                    print(f"{key}: {value}")
+                is_exception_add = True
+                continue
 
     def get_most_actual_prices(self):
         sql_query = text(f"call get_most_actual_dns_prices()")
@@ -253,7 +261,15 @@ class DatabaseMapper:
 
         return products
     
-    def get_products_links(self):
+    def get_city_names(self):
+        current_directory = os.getcwd()
+        categories_path = current_directory + "\\data\\prices\\dns\\city_names.json"
+        with open(categories_path, 'r', encoding="utf-8") as file:
+            data = json.load(file)
+
+        return data
+
+    def get_products_links_on_time(self):
         Base = declarative_base()
         Base.metadata.create_all(self.engine)
 
@@ -262,25 +278,63 @@ class DatabaseMapper:
         if products == None:
             return None
         
+        city_names = self.get_city_names()
+
         links_list = []
         products_without_record: List[Product] = self.get_products_without_record()
         if products_without_record != None:
             for product in products_without_record:
-                value = { "category": product.category, "link": product.link}
-                links_list.append(value)
+                for city_index, city_name in city_names.items():
+                    value = { "category": product.category, 
+                              "link": product.link,
+                              "city_name": city_name }
+                    links_list.append(value)
 
         availables_list: List[Available] = self.get_most_actual_available_records() 
         for available_entity in availables_list:
             product = self.session.query(Product).filter_by(uid = available_entity.product_id).first()
-            value = { "category": product.category, "link": product.link }
+            value = { "category": product.category, 
+                      "link": product.link, 
+                      "city_name": available_entity.city_name }
             if value not in links_list:
                 links_list.append(value)
 
         for product in products:
-            value = { "category": product.category, "link": product.link}
-            if value not in links_list:
-                links_list.append(value)
+            for city_index, city_name in city_names.items():
+                value = { "category": product.category, 
+                          "link": product.link, 
+                          "city_name": city_name }
+                if value not in links_list:
+                    links_list.append(value)
 
+        links_dict = {}
+        index = 0
+        for item in links_list:
+            links_dict[index] = item
+            index += 1
+        
+        return links_dict
+    
+    # ну и можно сортировать внутри городов
+    def get_products_links_on_city(self):
+        Base = declarative_base()
+        Base.metadata.create_all(self.engine)
+
+        products = self.session.query(Product).all()
+
+        if products == None:
+            return None
+        
+        city_names = self.get_city_names()
+
+        links_list = []
+        for city_index, city_name in city_names.items():
+            for product in products:
+                value = { "category": product.category, 
+                          "link": product.link, 
+                          "city_name": city_name }
+                if value not in links_list:
+                    links_list.append(value)
 
         links_dict = {}
         index = 0

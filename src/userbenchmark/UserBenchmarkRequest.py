@@ -138,3 +138,32 @@ class UserBecnhmarkRequest:
 
         self.logger.error(f"Не удалось получить результат, Link: {link}")
         return None
+    
+    def get_image_response(self, link, max_iteration = HTML_CONTENT_MAX_ITERATION):
+        current_iteration = 0
+
+        while max_iteration > current_iteration:
+            response, port = self.web_driver.get_response(link, cookies=STANDARD_USERBENCHMARK_COOKIES)
+
+            if (response.status_code != 200):
+                if (response.status_code == 410):
+                    self.logger.info(f"Страница вернула код - 410, Link: {link}")
+                    response = None
+                else:
+                    self.logger.warning(f"Страница вернула ошибку: {response.status_code}, Link: {link}")
+
+                    if self.is_multi_threading == True:
+                        self.__remove_port(port)
+                    else:
+                        self.web_driver.remove_port(port)
+
+                    continue
+
+            if response == None:
+                self.logger.info(f"Response равен None, get_html_content. Link: {link}")
+                return None
+            
+            return response
+
+        self.logger.error(f"Не удалось получить результат, Link: {link}")
+        return None

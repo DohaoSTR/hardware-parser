@@ -15,7 +15,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.webdriver import WebDriver
-from selenium.common.exceptions import NoSuchWindowException
+from selenium.common.exceptions import NoSuchWindowException, NoSuchElementException
 from src.RequestWebDriver import RequestWebDriver
 
 from src.SeleniumTorWebDriver import SeleniumTorWebDriver
@@ -288,10 +288,10 @@ class ProductsParser:
                 content_load_retries = 0
                 while True:
                     try:
-                        #pyautogui.hotkey('alt', 'tab')
                         wait = WebDriverWait(self.web_driver, WAIT_HTML_CONTENT_LOAD)
 
-                        wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "order-avail-wrap")))
+                        wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "product-card-top__buy")))
+                        wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "city-select__text_90n")))
                         self.logger.info(f"Link: {link}. Timeout True")
                         break
                     except TimeoutException:
@@ -316,7 +316,7 @@ class ProductsParser:
                     self.selenium_manager.clear_web_drivers(self.web_driver)
                     self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
                     continue
-
+                
                 html = self.web_driver.page_source
                 if html == None or len(html) == 0:
                     self.logger.info(f"Link: {link}. html = None")
@@ -400,8 +400,12 @@ class ProductsParser:
 
             if need_reload == True:
                 continue
-
-            element = self.web_driver.find_element(By.CLASS_NAME, "city-select__text_90n")
+            
+            try:
+                element = self.web_driver.find_element(By.CLASS_NAME, "city-select__text_90n")
+            except NoSuchElementException:
+                continue
+            
             if element == None:
                 continue
 
@@ -486,28 +490,24 @@ class ProductsParser:
         self.web_driver = self.selenium_manager.get_driver(IMAGES_LOAD, HEADLESS_BROWSER)
 
         mapper = DatabaseMapper(self.logger)
-        city_names = self.get_city_names()
 
-        links = mapper.get_products_links()
-
+        links = mapper.get_products_links_on_city()
         if links == None or len(links) == 0:
             return
 
         data = []
-        for city_index, city_name in city_names.items():
-            self.__change_city(city_name)
-            for index, item in links.items():
-                product_data = self.parse_status_data(item["link"], city_name)
+        for index, item in links.items():
+            product_data = self.parse_status_data(item["link"], item["city_name"])
 
-                print(product_data)
-                if product_data != None:
-                    product_data["category"] = item["category"]
-                    data.append(product_data)
+            print(product_data)
+            if product_data != None:
+                product_data["category"] = item["category"]
+                data.append(product_data)
 
-                if int(index) % 10 == 0:
-                    self.save_available_data(data)
-                    mapper.add_available_data(data)
-                    data = []
+            if int(index) % 10 == 0:
+                self.save_available_data(data)
+                mapper.add_available_data(data)
+                data = []
     ###
 
 

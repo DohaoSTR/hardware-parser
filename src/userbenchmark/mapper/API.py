@@ -17,6 +17,8 @@ from src.userbenchmark.GameSettings import GameSettings
 
 from src.userbenchmark.CompareKeys import CompareKeys
 from src.userbenchmark.KeysHandling import KeysHandling
+from src.userbenchmark.UserBenchmarkRequest import UserBecnhmarkRequest
+from src.userbenchmark.mapper.db_entities.GameImage import GameImage
 
 from .local_entities.CPU import CPU
 from .local_entities.GPU import GPU
@@ -99,13 +101,37 @@ class API:
             data.append({ "Key": key, "Name": value })
 
         return data
-
+    
     def get_game_keys_entities():
         game_keys = GameKeys.get_game_keys_from_json()
 
         data = []
         for key, value in game_keys.items():
             data.append(Games(key = key, name = value))
+
+        return data
+    
+    def get_game_images():
+        game_data = GameKeys.get_game_data_from_json()
+        request_web_driver = UserBecnhmarkRequest()
+
+        gaming_response = None
+        data = []
+        for key, item in game_data.items():
+
+            print(item["image_link"])
+            print(item["game_title"])
+
+            if (item["image_link"] == "https://www.userbenchmark.com/resources/img/icons/Gaming_128.png" and gaming_response == None):
+                gaming_response = request_web_driver.get_image_response(item["image_link"])
+            elif (item["image_link"] == "https://www.userbenchmark.com/resources/img/icons/Gaming_128.png"):
+                response = gaming_response
+            else:
+                response = request_web_driver.get_image_response(item["image_link"])
+
+            data.append(GameImage(image_data = response.content, 
+                                  image_link = item["image_link"],
+                                  game_key = key))
 
         return data
     #

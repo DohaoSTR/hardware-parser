@@ -28,4 +28,5 @@ def add_fps_data():
     mapper.add_unadded_fps_data()
 
 #add_all_data_without_fps()
-add_fps_data()
+#add_fps_data()
+mapper.add_game_images()
