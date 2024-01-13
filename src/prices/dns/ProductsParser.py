@@ -278,37 +278,18 @@ class ProductsParser:
         while True:
             try:
                 try:
+                    self.web_driver.set_page_load_timeout(5)
                     self.web_driver.get(link)
-                    self.web_driver.execute_script("return document.readyState")
                 except TimeoutException:
                     self.logger.info(f"Link: {link}. (0) TimeoutException")
-                    continue
                 
-                need_reload = False
-                content_load_retries = 0
-                while True:
-                    try:
-                        wait = WebDriverWait(self.web_driver, WAIT_HTML_CONTENT_LOAD)
-
-                        wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "product-card-top__buy")))
-                        wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "city-select__text_90n")))
-                        self.logger.info(f"Link: {link}. Timeout True")
-                        break
-                    except TimeoutException:
-                        self.logger.info(f"Link: {link}. TimeoutException")
-
-                        if self.web_driver.title == "HTTP 403":
-                            self.logger.info(f"Link: {link}. title (1) = HTTP 403")
-                            break
-                        
-                        content_load_retries += 1
-                        if content_load_retries == 30:
-                            need_reload = True
-                            break
-
-                        continue
-
-                if need_reload == True:
+                try:
+                    wait = WebDriverWait(self.web_driver, 5)
+                    wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "product-card-top__buy")))
+                    wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "city-select__text_90n")))
+                    self.logger.info(f"Link: {link}. Timeout True")
+                except TimeoutException:
+                    self.logger.info(f"Link: {link}. TimeoutException")
                     continue
                 
                 if self.web_driver.title == "HTTP 403":
@@ -370,47 +351,30 @@ class ProductsParser:
                       city_name: str):
         while True:
             try:
+                self.web_driver.set_page_load_timeout(5)
                 self.web_driver.get(f"https://www.dns-shop.ru/search/?q={city_name}")
-                self.web_driver.execute_script("return document.readyState")
             except TimeoutException:
                 self.logger.info(f"__change_city. (0) TimeoutException")
             
-            need_reload = False
-            content_load_retries = 0
-            while True:
-                try:
-                    wait = WebDriverWait(self.web_driver, WAIT_HTML_CONTENT_LOAD)
-
-                    wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "city-select__text_90n")))
-                    self.logger.info(f"__change_city. Timeout True")
-                    break
-                except TimeoutException:
-                    self.logger.info(f"__change_city. TimeoutException")
-
-                    if self.web_driver.title == "HTTP 403":
-                        self.logger.info(f"__change_city. title (1) = HTTP 403")
-                        break
-                    
-                    content_load_retries += 1
-                    if content_load_retries == 10:
-                        need_reload = True
-                        break
-
-                    continue
-
-            if need_reload == True:
-                continue
+            time.sleep(2)
             
             try:
                 element = self.web_driver.find_element(By.CLASS_NAME, "city-select__text_90n")
             except NoSuchElementException:
+                self.logger.info(f"__change_city. NoSuchElementException")
+                continue
+            except TimeoutException:
+                self.logger.info(f"__change_city. (1) TimeoutException")
                 continue
             
             if element == None:
+                self.logger.info(f"__change_city. element == None")
                 continue
 
             if element.text == city_name:
                 break
+            else:
+                self.logger.info(f"__change_city. element.text != city_name")
 
     def parse_status_data(self, 
                           link: str,
