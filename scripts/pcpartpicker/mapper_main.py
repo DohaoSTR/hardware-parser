@@ -22,8 +22,7 @@ def add_all_main_data():
     db.add_all_user_rating_data()
     db.add_all_price_data()
     db.add_all_image_link_data()
-    db.add_all_image_data()### erDataBase. Метод add_all_image_data. Ошибка - (MySQLdb.OperationalError) (2013, 'Lost connection to server during query')
-                           ###(Background on this error at: https://sqlalche.me/e/20/e3q8)
+    db.add_all_image_data()
 
 def add_all_parts_data():
     db.add_all_cpu_data()
@@ -36,6 +35,5 @@ def add_all_parts_data():
     db.add_all_cpu_cooler_data()
     db.add_all_power_supply()
 
-#add_all_main_data()
-#add_all_parts_data()
-db.add_all_image_data()
+db.add_all_pcpartpicker_userbenchmark()
+db.add_all_dns_ppp()

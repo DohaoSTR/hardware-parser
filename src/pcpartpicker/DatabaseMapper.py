@@ -8,6 +8,13 @@ from .db_entities.PartNumberEntity import PartNumberEntity
 from .db_entities.UserRatingEntity import UserRatingEntity
 from .db_entities.PriceEntity import PriceEntity
 
+from .db_entities.Compatible.CitilinkCompatible import CitilinkCompatible
+from .db_entities.Compatible.DNSCompatible import DNSCompatible
+from .db_entities.Compatible.UserBenchmarkCompatible import UserBenchmarkCompatible
+
+from src.prices.citilink.db_mapper.Product import Product as CitilinkProduct
+from src.prices.dns.db_mapper.Product import Product as DNSProduct
+
 from .local_entities.InternalHardDriveEntity import InternalDriveType
 
 from .Part import Part
@@ -19,6 +26,10 @@ from logging import Logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
+
+from src.configure.CompatibleMapper import get_dns_pcpartpicker
+from src.configure.CompatibleMapper import get_citilink_pcpartpicker
+from src.configure.CompatibleMapper import get_pcpartpicker_userbenchmark
 
 HOST = "a0871451.xsph.ru"
 USER_NAME = "a0871451_pcpartpicker"
@@ -593,3 +604,102 @@ class DatabaseMapper:
     #
     #
     #
+    
+    def add_all_dns_ppp(self):
+        try:
+            data = get_dns_pcpartpicker()
+
+            Base = declarative_base()
+            Base.metadata.create_all(self.engine)
+
+            for key, item in data.items():
+                entity = DNSCompatible(dns_uid = item["dns_id"], pcpartpicker_id = item["ppp_id"])
+                self.session.add(entity)
+                
+            self.session.commit()
+            return True
+        except Exception as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            file_name = exc_traceback.tb_frame.f_globals['__file__']
+            line_number = exc_traceback.tb_lineno
+            traceback_details = {
+                'filename': file_name,
+                'lineno': line_number,
+                'name': exc_traceback.tb_frame.f_code.co_name,
+                'type': exc_type.__name__,
+                'message': str(exc_value),
+                'traceback': traceback.format_exc()
+            }
+            print(f"Ошибка в файле {file_name}, строка {line_number}: {e}")
+            print("Подробности ошибки:")
+            for key, value in traceback_details.items():
+                print(f"{key}: {value}")
+
+            self.logger.error(f"Класс PcPartPickerDataBase. Метод add_all_dns_ppp. Ошибка - {str(e)}")
+            return False
+        
+    def add_all_citilink_ppp(self):
+        try:
+            data = get_citilink_pcpartpicker()
+
+            Base = declarative_base()
+            Base.metadata.create_all(self.engine)
+
+            for key, item in data.items():
+                entity = CitilinkCompatible(citilink_id = item["citilink_id"], pcpartpicker_id = item["ppp_id"])
+                self.session.add(entity)
+                
+            self.session.commit()
+            return True
+        except Exception as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            file_name = exc_traceback.tb_frame.f_globals['__file__']
+            line_number = exc_traceback.tb_lineno
+            traceback_details = {
+                'filename': file_name,
+                'lineno': line_number,
+                'name': exc_traceback.tb_frame.f_code.co_name,
+                'type': exc_type.__name__,
+                'message': str(exc_value),
+                'traceback': traceback.format_exc()
+            }
+            print(f"Ошибка в файле {file_name}, строка {line_number}: {e}")
+            print("Подробности ошибки:")
+            for key, value in traceback_details.items():
+                print(f"{key}: {value}")
+
+            self.logger.error(f"Класс PcPartPickerDataBase. Метод add_all_citilink_ppp. Ошибка - {str(e)}")
+            return False
+        
+    def add_all_pcpartpicker_userbenchmark(self):
+        try:
+            data = get_pcpartpicker_userbenchmark()
+
+            Base = declarative_base()
+            Base.metadata.create_all(self.engine)
+
+            for key, item in data.items():
+                entity = UserBenchmarkCompatible(userbenchmark_id = item["ub_id"], pcpartpicker_id = item["ppp_id"])
+                self.session.add(entity)
+                
+            self.session.commit()
+            return True
+        except Exception as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            file_name = exc_traceback.tb_frame.f_globals['__file__']
+            line_number = exc_traceback.tb_lineno
+            traceback_details = {
+                'filename': file_name,
+                'lineno': line_number,
+                'name': exc_traceback.tb_frame.f_code.co_name,
+                'type': exc_type.__name__,
+                'message': str(exc_value),
+                'traceback': traceback.format_exc()
+            }
+            print(f"Ошибка в файле {file_name}, строка {line_number}: {e}")
+            print("Подробности ошибки:")
+            for key, value in traceback_details.items():
+                print(f"{key}: {value}")
+
+            self.logger.error(f"Класс PcPartPickerDataBase. Метод add_all_pcpartpicker_userbenchmark. Ошибка - {str(e)}")
+            return False
