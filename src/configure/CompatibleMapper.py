@@ -66,3 +66,29 @@ def get_pcpartpicker_userbenchmark():
             index += 1
 
     return items
+
+def get_metrics():
+    current_directory = os.getcwd()
+    file_path = current_directory + "\\data\\ppp_ub_metrics.json"
+
+    with open(file_path, 'r', encoding='utf-8') as json_file:
+        data = json.load(json_file)
+
+    items = {}
+    index = 0
+    for key, value in data.items():
+        gaming_percentage = value["gaming_percentage"]
+        desktop_percentage = value["desktop_percentage"]
+        workstation_percentage = value["workstation_percentage"]
+        ppp_id = value["ppp_id"]
+
+        if gaming_percentage is not None or desktop_percentage is not None or workstation_percentage is not None:
+            items[index] = {
+                "gaming_percentage": gaming_percentage,
+                "desktop_percentage": desktop_percentage,
+                "workstation_percentage": workstation_percentage,
+                "ppp_id": ppp_id
+            }
+            index += 1
+
+    return items

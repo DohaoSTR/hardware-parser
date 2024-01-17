@@ -35,5 +35,4 @@ def add_all_parts_data():
     db.add_all_cpu_cooler_data()
     db.add_all_power_supply()
 
-db.add_all_pcpartpicker_userbenchmark()
-db.add_all_dns_ppp()
+db.add_all_metric()

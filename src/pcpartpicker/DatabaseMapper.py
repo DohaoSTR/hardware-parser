@@ -1,6 +1,8 @@
 import sys
 import traceback
 
+from src.pcpartpicker.db_entities.Metric import Metric
+
 from .db_entities.ImageLinkEntity import ImageLinkEntity
 from .db_entities.ImageDataEntity import ImageDataEntity
 from .db_entities.PartEntity import PartEntity
@@ -11,9 +13,6 @@ from .db_entities.PriceEntity import PriceEntity
 from .db_entities.Compatible.CitilinkCompatible import CitilinkCompatible
 from .db_entities.Compatible.DNSCompatible import DNSCompatible
 from .db_entities.Compatible.UserBenchmarkCompatible import UserBenchmarkCompatible
-
-from src.prices.citilink.db_mapper.Product import Product as CitilinkProduct
-from src.prices.dns.db_mapper.Product import Product as DNSProduct
 
 from .local_entities.InternalHardDriveEntity import InternalDriveType
 
@@ -30,6 +29,7 @@ from sqlalchemy.orm import declarative_base
 from src.configure.CompatibleMapper import get_dns_pcpartpicker
 from src.configure.CompatibleMapper import get_citilink_pcpartpicker
 from src.configure.CompatibleMapper import get_pcpartpicker_userbenchmark
+from src.configure.CompatibleMapper import get_metrics
 
 HOST = "a0871451.xsph.ru"
 USER_NAME = "a0871451_pcpartpicker"
@@ -702,4 +702,40 @@ class DatabaseMapper:
                 print(f"{key}: {value}")
 
             self.logger.error(f"Класс PcPartPickerDataBase. Метод add_all_pcpartpicker_userbenchmark. Ошибка - {str(e)}")
+            return False
+        
+    def add_all_metric(self):
+        try:
+            data = get_metrics()
+
+            Base = declarative_base()
+            Base.metadata.create_all(self.engine)
+
+            for key, item in data.items():
+                entity = Metric(gaming_percentage = item["gaming_percentage"], 
+                                desktop_percentage = item["desktop_percentage"],
+                                workstation_percentage = item["workstation_percentage"],
+                                part_id = item["ppp_id"])
+                self.session.add(entity)
+                
+            self.session.commit()
+            return True
+        except Exception as e:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            file_name = exc_traceback.tb_frame.f_globals['__file__']
+            line_number = exc_traceback.tb_lineno
+            traceback_details = {
+                'filename': file_name,
+                'lineno': line_number,
+                'name': exc_traceback.tb_frame.f_code.co_name,
+                'type': exc_type.__name__,
+                'message': str(exc_value),
+                'traceback': traceback.format_exc()
+            }
+            print(f"Ошибка в файле {file_name}, строка {line_number}: {e}")
+            print("Подробности ошибки:")
+            for key, value in traceback_details.items():
+                print(f"{key}: {value}")
+
+            self.logger.error(f"Класс PcPartPickerDataBase. Метод add_all_metric. Ошибка - {str(e)}")
             return False
