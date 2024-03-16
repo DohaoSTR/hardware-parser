@@ -15,10 +15,12 @@ from src.prices.dns.db_mapper.Price import Price
 from src.prices.dns.db_mapper.Product import Product
 from src.prices.dns.db_mapper.Available import Available
 
-HOST = "a0871451.xsph.ru"
-USER_NAME = "a0871451_prices"
-PASSWORD = "R2AXjG009yl4Ic6nxNAW"
-DATABASE_NAME = "a0871451_prices"
+from ....config_manager import config
+
+HOST = config.get("HostDB", "HOST")
+USER_NAME = config.get("PricesUser", "USER_NAME")
+PASSWORD = config.get("PricesUser", "PASSWORD")
+DATABASE_NAME = config.get("HostDB", "USERBENCHMARK_DATABASE_NAME")
 
 class DatabaseMapper:
     def __init__(self, logger: Logger = None):

@@ -8,10 +8,12 @@ from sqlalchemy.orm import declarative_base
 from src.pcpartpicker.db_entities.PartEntity import PartEntity
 from src.pcpartpicker.db_entities.PartNumberEntity import PartNumberEntity
 
-HOST = "localhost"
-USER_NAME = "root"
-PASSWORD = "root"
-DATABASE_NAME = "pcpartpicker_data"
+from ..config_manager import config
+
+HOST = config.get("LocalHostDB", "HOST")
+USER_NAME = config.get("LocalHostDB", "USER_NAME")
+PASSWORD = config.get("LocalHostDB", "PASSWORD")
+DATABASE_NAME = config.get("LocalHostDB", "PCPARTPICKER_DATABASE_NAME")
 
 class DatabaseAPI:
     def __init__(self, logger: Logger = None):

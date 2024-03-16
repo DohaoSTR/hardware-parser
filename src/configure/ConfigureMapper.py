@@ -48,10 +48,12 @@ from src.userbenchmark.mapper.db_entities.FPSData import FPSData
 
 from src.pcpartpicker.db_entities.PriceEntity import PriceEntity
 
-HOST = "localhost"
-USER_NAME = "root"
-PASSWORD = "root"
-DATABASE_NAME = "configure_data"
+from ..config_manager import config
+
+HOST = config.get("LocalHostDB", "HOST")
+USER_NAME = config.get("LocalHostDB", "USER_NAME")
+PASSWORD = config.get("LocalHostDB", "PASSWORD")
+DATABASE_NAME = config.get("LocalHostDB", "CONFIGURE_DATABASE_NAME")
 
 @dataclass
 class MainPart:

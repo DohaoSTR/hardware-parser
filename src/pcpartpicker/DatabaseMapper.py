@@ -31,10 +31,12 @@ from src.configure.CompatibleMapper import get_citilink_pcpartpicker
 from src.configure.CompatibleMapper import get_pcpartpicker_userbenchmark
 from src.configure.CompatibleMapper import get_metrics
 
-HOST = "a0871451.xsph.ru"
-USER_NAME = "a0871451_pcpartpicker"
-PASSWORD = "LwWCBuE3VVdHDnTXs6hG"
-DATABASE_NAME = "a0871451_pcpartpicker"
+from ..config_manager import config
+
+HOST = config.get("HostDB", "HOST")
+USER_NAME = config.get("PcPartPickerUser", "USER_NAME")
+PASSWORD = config.get("PcPartPickerUser", "PASSWORD")
+DATABASE_NAME = config.get("HostDB", "PCPARTPICKER_DATABASE_NAME")
 
 class DatabaseMapper:
     def __init__(self, logger: Logger = None):

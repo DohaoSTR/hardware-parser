@@ -21,10 +21,12 @@ from .db_entities.Metric import Metric
 from .db_entities.FPSData import FPSData
 from .db_entities.Games import Games
 
-HOST = "a0871451.xsph.ru"
-USER_NAME = "a0871451_userbenchmark"
-PASSWORD = "ZqK1pKvjxIFXj2DL8us1"
-DATABASE_NAME = "a0871451_userbenchmark"
+from ...config_manager import config
+
+HOST = config.get("HostDB", "HOST")
+USER_NAME = config.get("UserbenchmarkUser", "USER_NAME")
+PASSWORD = config.get("UserbenchmarkUser", "PASSWORD")
+DATABASE_NAME = config.get("HostDB", "USERBENCHMARK_DATABASE_NAME")
 
 class DatabaseMapper:
     def __init__(self, logger: Logger = None):

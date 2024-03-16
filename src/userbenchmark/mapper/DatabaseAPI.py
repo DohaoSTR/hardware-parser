@@ -1,16 +1,18 @@
 import logging
 from logging import Logger
 
-from sqlalchemy import and_, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 
 from src.userbenchmark.mapper.db_entities.PartEntity import PartEntity
 
-HOST = "localhost"
-USER_NAME = "root"
-PASSWORD = "root"
-DATABASE_NAME = "userbenchmark_data"
+from ...config_manager import config
+
+HOST = config.get("LocalHostDB", "HOST")
+USER_NAME = config.get("LocalHostDB", "USER_NAME")
+PASSWORD = config.get("LocalHostDB", "PASSWORD")
+DATABASE_NAME = config.get("LocalHostDB", "USERBENCHMARK_DATABASE_NAME")
 
 class DatabaseAPI:
     def __init__(self, logger: Logger = None):
